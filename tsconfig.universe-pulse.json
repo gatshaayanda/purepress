@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "rootDir": ".",
+    "outDir": ".test-dist-universe-pulse"
+  },
+  "include": [
+    "src/lib/boardsignal/types.ts",
+    "src/lib/boardsignal/memory.ts",
+    "src/lib/boardsignal/universe.ts",
+    "src/lib/boardsignal/pulse.ts",
+    "src/lib/boardsignal/account.ts",
+    "src/lib/boardsignal/communications.ts",
+    "src/lib/boardsignal/auth/callbackUri.ts"
+  ]
+}

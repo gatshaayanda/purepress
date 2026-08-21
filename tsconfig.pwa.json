@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "es2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": [],
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": [
+    "src/lib/boardsignal/offline/db.ts",
+    "src/lib/boardsignal/offline/types.ts",
+    "src/lib/boardsignal/offline/connectivity.ts",
+    "src/lib/boardsignal/offline/install.ts"
+  ]
+}

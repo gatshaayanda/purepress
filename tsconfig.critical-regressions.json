@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "rootDir": ".",
+    "outDir": ".test-dist-critical"
+  },
+  "include": [
+    "tests/boardsignal-identity-memory.test.ts",
+    "tests/boardsignal-beta-access.test.ts",
+    "tests/boardsignal-universe.test.ts",
+    "src/lib/boardsignal/types.ts",
+    "src/lib/boardsignal/account.ts",
+    "src/lib/boardsignal/auth/betaAccess.ts",
+    "src/lib/boardsignal/auth/callbackUri.ts",
+    "src/lib/boardsignal/memory.ts",
+    "src/lib/boardsignal/processor.ts",
+    "src/lib/boardsignal/universe.ts"
+  ]
+}

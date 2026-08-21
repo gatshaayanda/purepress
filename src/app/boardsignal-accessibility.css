@@ -1,0 +1,561 @@
+/* ==========================================================
+   Patch C.1 — complete contrast, readability + state safety
+   Presentation-only semantic hardening layered after Patch C.
+   ========================================================== */
+
+/* G.1: semantic tokens moved to boardsignal-foundation.css.
+   This stylesheet retains accessibility selectors/state protections only. */
+
+::selection {
+  background: var(--bs-selection-bg);
+  color: var(--bs-selection-text);
+}
+
+/* Focus is a functional state, not decoration. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--bs-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 1px var(--bs-focus-gap);
+}
+
+/* Forms: labels, values, placeholders, validation and disabled controls. */
+:is(
+  .personal-home,
+  .interior-page,
+  .public-player-page,
+  .player-room-authenticated,
+  .beta-preview-room,
+  .universal-desk-page,
+  .ask-bs,
+  .admin-shell,
+  .founder-newsroom,
+  .founder-player-directory,
+  .founder-communications
+) :is(input, textarea, select) {
+  border-color: var(--bs-ui-border);
+  background: var(--bs-surface-raised);
+  color: var(--bs-text);
+}
+
+:is(
+  .personal-home,
+  .interior-page,
+  .public-player-page,
+  .player-room-authenticated,
+  .beta-preview-room,
+  .universal-desk-page,
+  .ask-bs,
+  .admin-shell,
+  .founder-newsroom,
+  .founder-player-directory,
+  .founder-communications
+) :is(input, textarea)::placeholder {
+  color: var(--bs-text-muted);
+  opacity: 1;
+}
+
+:is(
+  .personal-home,
+  .interior-page,
+  .public-player-page,
+  .player-room-authenticated,
+  .beta-preview-room,
+  .universal-desk-page,
+  .ask-bs,
+  .admin-shell,
+  .founder-newsroom,
+  .founder-player-directory,
+  .founder-communications
+) :is(button, input, textarea, select):disabled,
+:is(
+  .personal-home,
+  .interior-page,
+  .public-player-page,
+  .player-room-authenticated,
+  .beta-preview-room,
+  .universal-desk-page,
+  .ask-bs,
+  .admin-shell,
+  .founder-newsroom,
+  .founder-player-directory,
+  .founder-communications
+) [aria-disabled="true"] {
+  opacity: 1;
+  border-color: var(--bs-ui-border);
+  background: var(--bs-disabled-surface);
+  color: var(--bs-disabled-text);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Required control boundaries use the stronger semantic role. */
+:is(
+  .button-outline,
+  .btn-outline,
+  .button-quiet,
+  .btn-ghost,
+  .menu-button,
+  .bs-theme-control-field,
+  .room-tab-nav button,
+  .quality-reference,
+  .ask-bs-actions button,
+  .ask-bs-feedback button,
+  .ask-bs-suggestions button,
+  .ask-bs-failure button,
+  .ask-bs-failure a,
+  .ask-bs-composer input,
+  .ask-bs-composer button
+) {
+  border-color: var(--bs-ui-border);
+}
+
+/* Links remain identifiable without relying on a faint color difference. */
+:is(.text-link, .ask-bs-failure a, .quality-reference a, .desk-caveats a, .universal-evidence-list a) {
+  color: var(--bs-blue-readable);
+  text-decoration: underline;
+  text-decoration-thickness: 0.11em;
+  text-underline-offset: 0.18em;
+}
+
+/* Dark surfaces: hierarchy changes, readability does not. */
+:is(
+  .bs-surface-dark,
+  .first-value-preview,
+  .pipeline-preview,
+  .universal-cover-copy,
+  .engine-section,
+  .feed-hero,
+  .beta-preview-sticky-access,
+  .current-episode-card .return-loop-next,
+  .site-footer,
+  .ask-bs-header,
+  .ask-bs-launcher
+) {
+  color: var(--bs-text-on-dark);
+}
+
+:is(
+  .bs-surface-dark,
+  .first-value-preview,
+  .pipeline-preview,
+  .universal-cover-copy,
+  .engine-section,
+  .feed-hero,
+  .beta-preview-sticky-access,
+  .current-episode-card .return-loop-next,
+  .site-footer,
+  .ask-bs-header,
+  .ask-bs-launcher
+) :is(h1, h2, h3, h4, strong, label) {
+  color: var(--bs-text-on-dark);
+}
+
+:is(
+  .bs-surface-dark,
+  .first-value-preview,
+  .pipeline-preview,
+  .universal-cover-copy,
+  .engine-section,
+  .feed-hero,
+  .beta-preview-sticky-access,
+  .current-episode-card .return-loop-next,
+  .site-footer,
+  .ask-bs-header,
+  .ask-bs-launcher
+) :is(p, small) {
+  color: var(--bs-text-on-dark-secondary);
+}
+
+/* Known Patch C opacity/compositing risks receive direct readable roles. */
+.site-footer :is(.footer-brand p, .footer-note p),
+.first-value-preview > p:last-child,
+.universal-cover-copy > p:not(.kicker),
+.current-episode-card .return-loop-next small {
+  color: var(--bs-text-on-dark-secondary);
+}
+
+.engine-section :is(p, small, .quality-reference) {
+  color: var(--bs-text-on-dark-secondary);
+}
+
+/* Lime remains an accent/surface. Text on lime is always the fixed dark role. */
+:is(
+  .button-lime,
+  .universal-score-card,
+  .preview-open,
+  .member-first-desk-note,
+  .beta-request-success-mark,
+  .agreement-mark,
+  .metric-card.lime,
+  .bs-surface-accent
+) {
+  color: var(--bs-on-lime);
+}
+
+:is(
+  .button-lime,
+  .universal-score-card,
+  .preview-open,
+  .member-first-desk-note,
+  .beta-request-success-mark,
+  .agreement-mark,
+  .metric-card.lime,
+  .bs-surface-accent
+) :is(h1, h2, h3, h4, p, small, strong, span, label, svg) {
+  color: var(--bs-on-lime);
+}
+
+/* A.1 / Stockfish recovery presentation. The factual review remains visually primary. */
+.last-active-banner {
+  border-color: var(--bs-ui-border);
+  background: var(--bs-warning-surface);
+  color: var(--bs-text);
+}
+.last-active-banner > svg { color: var(--bs-warning-text); }
+.last-active-banner :is(strong, p, small) { color: var(--bs-text); }
+.last-active-banner strong { font-weight: 800; }
+.last-active-banner p { margin-top: 0.15rem; }
+.last-active-banner small { display: block; margin-top: 0.2rem; color: var(--bs-text-secondary); }
+.quality-reference { color: var(--bs-text-muted); }
+details.quality-reference[open] {
+  border: 1px solid var(--bs-ui-border);
+  background: var(--bs-bg-subtle);
+  color: var(--bs-text-secondary);
+}
+details.quality-reference summary { color: var(--bs-text); font-weight: 800; }
+details.quality-reference p { color: var(--bs-text-secondary); }
+.quality-actions .button-lime { border-color: var(--bs-on-lime); }
+
+/* Statuses remain text + shape/border states, never color alone. */
+.state-pill {
+  gap: 0.35rem;
+  border-color: currentColor;
+  color: var(--bs-text);
+}
+.state-pill::before { font-weight: 900; line-height: 1; }
+.state-pill.ready {
+  background: var(--bs-positive-surface);
+  color: var(--bs-positive-text);
+}
+.state-pill.ready::before { content: "✓"; }
+.state-pill.processing {
+  background: var(--bs-blue-soft);
+  color: var(--bs-blue-readable);
+}
+.state-pill.processing::before { content: "…"; }
+.state-pill.exception {
+  background: var(--bs-danger-surface);
+  color: var(--bs-danger-text);
+}
+.state-pill.exception::before { content: "!"; }
+
+/* Error/warning/success surfaces use readable state foreground roles. */
+:is(.ask-bs-failure, .beta-preview-failure, .social-load-error, [role="alert"]) {
+  border-color: var(--bs-danger-text);
+  background: var(--bs-danger-surface);
+  color: var(--bs-text);
+}
+:is(.ask-bs-failure, .beta-preview-failure, .social-load-error, [role="alert"]) :is(h1, h2, h3, h4, strong) {
+  color: var(--bs-danger-text);
+}
+:is(.ask-bs-failure, .beta-preview-failure, .social-load-error, [role="alert"]) :is(p, small, span) {
+  color: var(--bs-text-secondary);
+}
+
+/* Empty/unavailable/offline states are secondary, not faint. */
+:is(
+  .section-empty,
+  .social-empty-note,
+  .public-coverage-empty,
+  .public-private-boundary,
+  .offline-player-room,
+  .player-room-offline,
+  .current-facts-unavailable,
+  .pulse-unavailable
+) {
+  border-color: var(--bs-ui-border);
+  color: var(--bs-text-secondary);
+}
+:is(
+  .section-empty,
+  .social-empty-note,
+  .public-coverage-empty,
+  .public-private-boundary,
+  .offline-player-room,
+  .player-room-offline,
+  .current-facts-unavailable,
+  .pulse-unavailable
+) :is(h1, h2, h3, h4, strong) { color: var(--bs-text); }
+:is(
+  .section-empty,
+  .social-empty-note,
+  .public-coverage-empty,
+  .public-private-boundary,
+  .offline-player-room,
+  .player-room-offline,
+  .current-facts-unavailable,
+  .pulse-unavailable
+) :is(p, small, span) { color: var(--bs-text-secondary); }
+
+/* G.1 rendered-cascade reinforcement for the protected F.2 Universe card surface.
+   The older translucent learning-card selector is more specific than the generic
+   F.2 card selector, so bind the protected card to F.2's explicit dark role here. */
+.universal-section.universe-learning-section .universe-learning-grid > :is(a, article) {
+  background: var(--bs-f2-learning-card-dark);
+  color: var(--bs-text-on-dark);
+}
+
+/* Active/selected navigation has a boundary as well as a color change. */
+.room-tab-nav button.active,
+[aria-current="page"],
+[aria-selected="true"] {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+.player-inbox-list button.is-selected,
+.founder-conversation-list button.is-selected {
+  border-color: var(--bs-ui-border);
+  box-shadow: inset 0 0 0 2px var(--bs-ui-border);
+}
+
+/* Fixed/sticky helpers must not trap the last useful control underneath them. */
+html {
+  scroll-padding-top: 7.5rem;
+  scroll-padding-bottom: max(8rem, calc(env(safe-area-inset-bottom) + 7rem));
+}
+:where(a, button, input, select, textarea, summary, [tabindex]) {
+  scroll-margin-top: 7.5rem;
+  scroll-margin-bottom: max(8rem, calc(env(safe-area-inset-bottom) + 7rem));
+}
+:is(.personal-home, .interior-page, .player-room-authenticated, .universal-desk-page, .public-player-page) {
+  overflow-wrap: anywhere;
+}
+:is(.room-tab-nav, .desk-chapter-nav) {
+  scroll-margin-top: 7.5rem;
+}
+
+/* High-contrast preference: stronger separation, same design system. */
+@media (prefers-contrast: more) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline-width: 4px;
+    outline-color: #1733b8;
+  }
+  html[data-bs-theme="dark"] :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline-color: #d0dbff;
+  }
+  :is(
+    .button-outline, .btn-outline, .button-quiet, .btn-ghost, .menu-button,
+    .bs-theme-control-field, .room-tab-nav button, .quality-reference,
+    .ask-bs-actions button, .ask-bs-feedback button, .ask-bs-suggestions button,
+    .ask-bs-failure button, .ask-bs-failure a, .ask-bs-composer input, .ask-bs-composer button
+  ) { border-color: #6f685f; }
+  html[data-bs-theme="dark"] :is(
+    .button-outline, .btn-outline, .button-quiet, .btn-ghost, .menu-button,
+    .bs-theme-control-field, .room-tab-nav button, .quality-reference,
+    .ask-bs-actions button, .ask-bs-feedback button, .ask-bs-suggestions button,
+    .ask-bs-failure button, .ask-bs-failure a, .ask-bs-composer input, .ask-bs-composer button
+  ) { border-color: #718099; }
+}
+
+/* Respect OS/browser forced-colors instead of freezing brand colors. */
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid Highlight;
+    box-shadow: none;
+  }
+  :is(.state-pill, .last-active-banner, .section-empty, .ask-bs-failure, .beta-preview-failure) {
+    border: 1px solid CanvasText;
+  }
+  :is(.button, .btn, input, textarea, select) {
+    border-color: ButtonText;
+  }
+}
+
+/* Mobile widths explicitly sampled by C.1. */
+@media (max-width: 480px) {
+  .room-tab-nav,
+  .desk-chapter-nav {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+  .ask-bs-launcher { max-width: calc(100vw - 24px); }
+}
+
+@media (max-width: 390px) {
+  html { scroll-padding-bottom: max(8.5rem, calc(env(safe-area-inset-bottom) + 7.5rem)); }
+  .ask-bs { right: max(8px, env(safe-area-inset-right)); }
+}
+
+@media (max-width: 360px) {
+  .container { width: min(100% - 12px, 1240px); }
+  .room-tab-nav button { padding-inline: 0.58rem; }
+  .ask-bs-launcher { padding-inline: 0.7rem; }
+}
+
+@media (max-width: 320px) {
+  .container { width: min(100% - 8px, 1240px); }
+  .ask-bs-launcher span { display: none; }
+  .ask-bs-launcher { width: 48px; padding: 0; justify-content: center; }
+  .ask-bs-panel { inset-inline: 4px; }
+}
+
+/* Dark-theme specificity guard: Patch C has theme-qualified state/supporting rules. */
+html[data-bs-theme="dark"] :is(
+  .bs-surface-dark,
+  .first-value-preview,
+  .pipeline-preview,
+  .universal-cover-copy,
+  .engine-section,
+  .feed-hero,
+  .beta-preview-sticky-access,
+  .current-episode-card .return-loop-next,
+  .site-footer,
+  .ask-bs-header,
+  .ask-bs-launcher
+) :is(h1, h2, h3, h4, strong, label) {
+  color: var(--bs-text-on-dark);
+}
+html[data-bs-theme="dark"] :is(
+  .bs-surface-dark,
+  .first-value-preview,
+  .pipeline-preview,
+  .universal-cover-copy,
+  .engine-section,
+  .feed-hero,
+  .beta-preview-sticky-access,
+  .current-episode-card .return-loop-next,
+  .site-footer,
+  .ask-bs-header,
+  .ask-bs-launcher
+) :is(p, small) {
+  color: var(--bs-text-on-dark-secondary);
+}
+html[data-bs-theme="dark"] .state-pill.ready {
+  background: var(--bs-positive-surface);
+  color: var(--bs-positive-text);
+}
+html[data-bs-theme="dark"] .state-pill.processing {
+  background: var(--bs-blue-soft);
+  color: var(--bs-blue-readable);
+}
+html[data-bs-theme="dark"] .state-pill.exception {
+  background: var(--bs-danger-surface);
+  color: var(--bs-danger-text);
+}
+
+/* ==========================================================
+   Patch A.2 — Founder-only destructive account lifecycle UI
+   Uses existing C.1 danger/readability roles; no consumer redesign.
+   ========================================================== */
+.founder-account-deletion-zone {
+  margin-top: 2rem;
+  border: 1px solid var(--bs-ui-border);
+  border-left: 5px solid var(--bs-danger-text);
+  background: var(--bs-surface);
+}
+.founder-account-deletion-zone h2,
+.founder-account-deletion-zone h3,
+.founder-account-deletion-zone strong { color: var(--bs-text); }
+.founder-account-deletion-zone > .founder-directory-heading > div > p:last-child { color: var(--bs-text-secondary); }
+.founder-account-deletion-picker {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: .65rem;
+  align-items: end;
+  margin-top: 1rem;
+}
+.founder-account-deletion-picker label { grid-column: 1 / -1; color: var(--bs-text); font-weight: 800; }
+.founder-account-deletion-picker select,
+.founder-account-delete-dialog input {
+  min-height: 46px;
+  border: 1px solid var(--bs-ui-border);
+  background: var(--bs-surface-raised);
+  color: var(--bs-text);
+  padding: .65rem .75rem;
+}
+.founder-delete-account-button,
+.founder-delete-account-permanently {
+  border: 2px solid var(--bs-danger-text);
+  background: var(--bs-danger-surface);
+  color: var(--bs-danger-text);
+  box-shadow: none;
+}
+.founder-delete-account-button :is(svg, span, strong),
+.founder-delete-account-permanently :is(svg, span, strong) { color: currentColor; }
+.founder-delete-account-button:hover,
+.founder-delete-account-permanently:hover {
+  background: color-mix(in srgb, var(--bs-danger-text) 12%, var(--bs-danger-surface));
+  color: var(--bs-danger-text);
+  box-shadow: 0 0 0 2px var(--bs-danger-text);
+  transform: none;
+}
+.founder-account-deletion-success,
+.founder-account-deletion-error {
+  display: flex;
+  gap: .65rem;
+  align-items: flex-start;
+  margin-top: 1rem;
+  padding: .85rem 1rem;
+  border: 1px solid currentColor;
+}
+.founder-account-deletion-success { background: var(--bs-positive-surface); color: var(--bs-positive-text); }
+.founder-account-deletion-success :is(strong, p) { color: var(--bs-positive-text); }
+.founder-account-deletion-error { background: var(--bs-danger-surface); color: var(--bs-danger-text); }
+.founder-account-deletion-error strong { color: var(--bs-danger-text); }
+.founder-account-deletion-error p { color: var(--bs-text-secondary); }
+.founder-account-delete-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(8, 17, 30, .72);
+}
+.founder-account-delete-dialog-card {
+  position: relative;
+  width: min(100%, 560px);
+  display: grid;
+  gap: .85rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 2px solid var(--bs-danger-text);
+  border-radius: var(--bs-radius-md);
+  background: var(--bs-surface-raised);
+  color: var(--bs-text);
+  box-shadow: var(--bs-shadow-2);
+}
+.founder-account-delete-dialog-card > svg { color: var(--bs-danger-text); }
+.founder-account-delete-dialog-card > p { color: var(--bs-text-secondary); }
+.founder-account-delete-dialog-card label { color: var(--bs-text); font-weight: 800; }
+.founder-account-delete-close {
+  position: absolute;
+  top: .75rem;
+  right: .75rem;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--bs-ui-border);
+  border-radius: 50%;
+  background: var(--bs-surface);
+  color: var(--bs-text);
+  cursor: pointer;
+}
+.founder-account-delete-identity {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .75rem;
+  border: 1px solid var(--bs-ui-border);
+  background: var(--bs-bg-subtle);
+}
+.founder-account-delete-identity span { color: var(--bs-text-secondary); }
+.founder-account-delete-actions { display: flex; justify-content: flex-end; gap: .65rem; flex-wrap: wrap; }
+@media (max-width: 680px) {
+  .founder-account-deletion-picker { grid-template-columns: 1fr; }
+  .founder-account-deletion-picker label { grid-column: auto; }
+  .founder-account-deletion-picker .button { width: 100%; }
+  .founder-account-delete-actions { display: grid; grid-template-columns: 1fr; }
+  .founder-account-delete-actions .button { width: 100%; }
+}

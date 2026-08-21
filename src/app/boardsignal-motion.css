@@ -1,0 +1,462 @@
+/* ==========================================================
+   Patch D — Situational Motion
+   Motion explains meaningful state change; it never delays access.
+   ========================================================== */
+
+:root {
+  --bs-motion-fast: 140ms;
+  --bs-motion-standard: 220ms;
+  --bs-motion-slow: 360ms;
+  --bs-ease-standard: cubic-bezier(.2, .7, .2, 1);
+  --bs-ease-enter: cubic-bezier(.16, 1, .3, 1);
+  --bs-ease-exit: cubic-bezier(.4, 0, 1, 1);
+  --bs-motion-shift: 4px;
+  --bs-motion-shift-strong: 6px;
+}
+
+/* Theme changes stay small. Patch C's pre-paint bootstrap still owns the
+   initial theme, so these transitions do not create a wrong-theme flash. */
+:where(
+  body,
+  .site-header,
+  .mobile-nav,
+  .room-tab-nav,
+  .bs-theme-control-field,
+  .bs-surface-paper,
+  .bs-surface-light,
+  .bs-surface-soft,
+  .bs-surface-dark,
+  .current-episode-card,
+  .universal-section,
+  .universal-cover-copy,
+  .universal-score-card,
+  .beta-preview-hero,
+  .beta-preview-week,
+  .beta-preview-universe,
+  .beta-preview-progress,
+  .beta-preview-players,
+  .beta-preview-return,
+  .beta-preview-next,
+  .coverage-card,
+  .universe-now-grid article,
+  .ask-bs-panel
+) {
+  transition:
+    background-color var(--bs-motion-standard) var(--bs-ease-standard),
+    border-color var(--bs-motion-standard) var(--bs-ease-standard),
+    color var(--bs-motion-fast) var(--bs-ease-standard);
+}
+
+/* Coherent control language. Focus remains the Patch C accessible outline. */
+.button,
+.btn,
+.room-tab-nav button,
+.ask-bs-suggestions button,
+.ask-bs-actions button,
+.player-inbox-list button,
+.bs-theme-control-field {
+  transition:
+    transform var(--bs-motion-fast) var(--bs-ease-standard),
+    background-color var(--bs-motion-fast) var(--bs-ease-standard),
+    border-color var(--bs-motion-fast) var(--bs-ease-standard),
+    color var(--bs-motion-fast) var(--bs-ease-standard),
+    box-shadow var(--bs-motion-fast) var(--bs-ease-standard);
+}
+
+.button:active:not(:disabled),
+.btn:active:not(:disabled),
+.room-tab-nav button:active:not(:disabled),
+.ask-bs-suggestions button:active:not(:disabled),
+.ask-bs-actions button:active:not(:disabled),
+.player-inbox-list button:active:not(:disabled) {
+  transform: translateY(1px) scale(.995);
+  box-shadow: none;
+}
+
+:where(.button, .btn, .room-tab-nav button, .ask-bs-suggestions button, .ask-bs-actions button, .player-inbox-list button):disabled {
+  transform: none;
+}
+
+/* Navigation is immediate; only the selected state and newly mounted content settle. */
+.room-tab-nav button.active {
+  transition-duration: var(--bs-motion-fast);
+}
+
+.player-room-memory,
+.my-progress-section,
+.player-universe-panel,
+.player-inbox-section,
+.player-profile-section {
+  animation: bs-motion-content-enter var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+/* Active week: first load is calm. Stronger classes below are applied only
+   after real React/DOM state changes have been observed. */
+.current-episode-card {
+  animation: bs-motion-content-enter var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+.bs-motion-fact-change {
+  animation: bs-motion-fact-change var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+.bs-motion-observation-change {
+  animation: bs-motion-observation-change 300ms var(--bs-ease-enter) both;
+}
+
+.bs-motion-guidance-change {
+  animation: bs-motion-guidance-change 320ms var(--bs-ease-enter) both;
+}
+
+/* B.1: the previous-Review fallback becoming current-week guidance is more
+   meaningful than a normal text refresh, but still a single restrained cue. */
+.bs-motion-guidance-current {
+  animation: bs-motion-guidance-current var(--bs-motion-slow) var(--bs-ease-enter) both;
+}
+
+/* Week progress remains factual, not XP-style. No marker bounce or counting. */
+.current-episode-stats > div,
+.forming-pools > article,
+.current-episode-card .return-loop-blue,
+.current-episode-card .return-loop-amber {
+  will-change: auto;
+}
+
+/* Completed Review reading order: content is present immediately; the settle
+   only gives WHAT HAPPENED → WHAT MATTERED → FOCUS NEXT a brief hierarchy. */
+.universal-cover {
+  animation: bs-motion-content-enter 180ms var(--bs-ease-enter) both;
+}
+
+#what-mattered.universal-section {
+  animation: bs-motion-review-section 230ms var(--bs-ease-enter) 30ms both;
+}
+
+#focus-next.universal-section {
+  animation: bs-motion-review-section 250ms var(--bs-ease-enter) 70ms both;
+}
+
+.bs-motion-review-ready {
+  animation: bs-motion-review-ready var(--bs-motion-slow) var(--bs-ease-enter) both;
+}
+
+.bs-motion-review-ready-focus {
+  animation: bs-motion-review-ready-focus var(--bs-motion-slow) var(--bs-ease-enter) both;
+}
+
+/* A.1: factual Review content never becomes a loading surface. Only the
+   position-review banner receives activity, and only while real checking runs. */
+.bs-motion-engine-state {
+  animation: bs-motion-engine-state var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+.last-active-banner.bs-motion-engine-active > svg:first-child {
+  animation: bs-motion-engine-spin 760ms linear infinite;
+  transform-origin: 50% 50%;
+}
+
+.quality-actions {
+  animation: bs-motion-action-enter var(--bs-motion-fast) var(--bs-ease-enter) both;
+}
+
+/* Preview: recognition arrives quickly; the CTA is never held back. */
+.beta-preview-hero,
+.beta-preview-week,
+.beta-preview-universe,
+.beta-preview-progress,
+.beta-preview-players,
+.beta-preview-return,
+.beta-preview-next,
+.beta-preview-failure {
+  animation: bs-motion-content-enter var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+.beta-preview-week { animation-delay: 20ms; }
+.beta-preview-universe,
+.beta-preview-progress,
+.beta-preview-players { animation-delay: 45ms; }
+
+.bs-motion-preview-state {
+  animation: bs-motion-preview-state var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+.beta-preview-primary-cta,
+.beta-preview-sticky-access .button {
+  transition:
+    transform var(--bs-motion-fast) var(--bs-ease-standard),
+    background-color var(--bs-motion-fast) var(--bs-ease-standard),
+    border-color var(--bs-motion-fast) var(--bs-ease-standard),
+    color var(--bs-motion-fast) var(--bs-ease-standard);
+}
+
+/* Around BoardSignal can carry slightly more editorial energy, without a
+   ticker, marquee, leaderboard motion, or auto-scrolling surface. */
+.feed-hero .container,
+.universe-now-grid article,
+.coverage-card,
+.public-coverage-lead {
+  animation: bs-motion-editorial-enter 280ms var(--bs-ease-enter) both;
+}
+
+.universe-now-grid article:nth-child(n + 2),
+.coverage-card:nth-child(n + 2) {
+  animation-delay: 35ms;
+}
+
+/* Social/inbox/settings acknowledgement stays small and local. */
+.friend-card,
+.comparison-grid,
+.head-to-head,
+.player-profile-section [role="status"],
+.profile-settings-card [role="status"] {
+  animation: bs-motion-content-enter var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+.bs-motion-unread-change {
+  animation: bs-motion-badge-change var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+/* Existing native disclosure semantics stay intact. Only newly revealed
+   content settles; keyboard behavior and summary activation are unchanged. */
+details.quality-reference[open] > :not(summary),
+.universal-section details[open] > :not(summary) {
+  animation: bs-motion-disclosure var(--bs-motion-fast) var(--bs-ease-enter) both;
+}
+
+details > summary {
+  transition: color var(--bs-motion-fast) var(--bs-ease-standard);
+}
+
+:where(.bs-theme-control-field svg, .site-header svg, .button svg, .btn svg) {
+  transition: color var(--bs-motion-fast) var(--bs-ease-standard);
+}
+
+/* Patch E still owns Ask behavior and voice. D only gives the existing shell
+   a short opening settle and responsive trigger/control states. */
+.ask-bs.is-open .ask-bs-panel {
+  animation: bs-motion-ask-enter var(--bs-motion-standard) var(--bs-ease-enter) both;
+}
+
+.ask-bs-message,
+.ask-bs-thinking,
+.ask-bs-failure {
+  animation: bs-motion-content-enter var(--bs-motion-fast) var(--bs-ease-enter) both;
+}
+
+@keyframes bs-motion-content-enter {
+  from { opacity: .94; transform: translateY(var(--bs-motion-shift)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-fact-change {
+  0% { opacity: .82; transform: translateY(var(--bs-motion-shift-strong)); }
+  48% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-observation-change {
+  0% { opacity: .86; transform: translateY(var(--bs-motion-shift-strong)); }
+  55% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-guidance-change {
+  0% { opacity: .82; transform: translateY(var(--bs-motion-shift-strong)); }
+  52% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-guidance-current {
+  0% {
+    opacity: .86;
+    transform: translateY(var(--bs-motion-shift-strong));
+    box-shadow: inset 4px 0 0 var(--bs-blue);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0);
+    box-shadow: inset 4px 0 0 color-mix(in srgb, var(--bs-blue) 58%, transparent);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    box-shadow: inset 0 0 0 transparent;
+  }
+}
+
+@keyframes bs-motion-review-section {
+  from { opacity: .95; transform: translateY(var(--bs-motion-shift)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-review-ready {
+  0% { opacity: .9; transform: translateY(var(--bs-motion-shift-strong)); }
+  55% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-review-ready-focus {
+  0% {
+    opacity: .9;
+    transform: translateY(var(--bs-motion-shift-strong));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-lime) 36%, transparent);
+  }
+  60% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); box-shadow: var(--bs-shadow-1); }
+}
+
+@keyframes bs-motion-engine-state {
+  from { opacity: .84; }
+  to { opacity: 1; }
+}
+
+@keyframes bs-motion-engine-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bs-motion-action-enter {
+  from { opacity: .88; transform: translateY(var(--bs-motion-shift)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-preview-state {
+  0% { opacity: .82; transform: translateY(var(--bs-motion-shift)); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-editorial-enter {
+  from { opacity: .94; transform: translateY(var(--bs-motion-shift-strong)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-badge-change {
+  0% { opacity: .72; transform: scale(.96); }
+  55% { opacity: 1; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bs-motion-disclosure {
+  from { opacity: .86; transform: translateY(calc(var(--bs-motion-shift) * -1)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bs-motion-ask-enter {
+  from { opacity: .94; transform: translateY(var(--bs-motion-shift-strong)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile movement is even smaller so touch targets do not move away from the
+   finger and layout never animates across the viewport. */
+@media (max-width: 680px) {
+  .player-room-memory,
+  .current-episode-card,
+  .universal-cover,
+  #what-mattered.universal-section,
+  #focus-next.universal-section,
+  .beta-preview-hero,
+  .beta-preview-week,
+  .beta-preview-universe,
+  .beta-preview-progress,
+  .beta-preview-players,
+  .beta-preview-return,
+  .beta-preview-next,
+  .feed-hero .container,
+  .universe-now-grid article,
+  .coverage-card,
+  .public-coverage-lead,
+  .friend-card,
+  .head-to-head,
+  .ask-bs.is-open .ask-bs-panel {
+    --bs-motion-shift: 2px;
+    --bs-motion-shift-strong: 3px;
+  }
+
+  .button:active:not(:disabled),
+  .btn:active:not(:disabled),
+  .room-tab-nav button:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+}
+
+/* Reduced motion is a system behavior, not a special page. All information,
+   copy, controls and semantic state remain; nonessential movement disappears. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  :where(
+    .player-room-memory,
+    .my-progress-section,
+    .player-universe-panel,
+    .player-inbox-section,
+    .player-profile-section,
+    .current-episode-card,
+    .universal-cover,
+    #what-mattered.universal-section,
+    #focus-next.universal-section,
+    .beta-preview-hero,
+    .beta-preview-week,
+    .beta-preview-universe,
+    .beta-preview-progress,
+    .beta-preview-players,
+    .beta-preview-return,
+    .beta-preview-next,
+    .beta-preview-failure,
+    .feed-hero .container,
+    .universe-now-grid article,
+    .coverage-card,
+    .public-coverage-lead,
+    .friend-card,
+    .comparison-grid,
+    .head-to-head,
+    .ask-bs-panel,
+    .ask-bs-message,
+    .ask-bs-thinking,
+    .ask-bs-failure,
+    .quality-actions,
+    .bs-motion-fact-change,
+    .bs-motion-observation-change,
+    .bs-motion-guidance-change,
+    .bs-motion-guidance-current,
+    .bs-motion-review-ready,
+    .bs-motion-review-ready-focus,
+    .bs-motion-engine-state,
+    .bs-motion-preview-state,
+    .bs-motion-unread-change,
+    details[open] > :not(summary)
+  ) {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .last-active-banner.bs-motion-engine-active > svg:first-child,
+  .button-spinner,
+  .motion-enter,
+  .motion-delay-1,
+  .motion-delay-2 {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  :where(
+    body,
+    .site-header,
+    .mobile-nav,
+    .room-tab-nav,
+    .bs-theme-control-field,
+    .button,
+    .btn,
+    .room-tab-nav button,
+    .ask-bs-suggestions button,
+    .ask-bs-actions button,
+    .player-inbox-list button,
+    .bs-surface-paper,
+    .bs-surface-dark,
+    .current-episode-card,
+    .universal-section,
+    .beta-preview-hero,
+    .coverage-card,
+    .ask-bs-panel
+  ) {
+    transition-duration: 1ms !important;
+  }
+}

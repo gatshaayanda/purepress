@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": [],
+    "noEmit": true
+  },
+  "include": [
+    "src/lib/boardsignal/activation.ts",
+    "src/lib/boardsignal/previewReturn.ts",
+    "src/lib/boardsignal/guide.ts"
+  ]
+}

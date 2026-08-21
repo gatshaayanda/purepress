@@ -1,0 +1,200 @@
+/* ==========================================================
+   Patch G.1 — BoardSignal UI semantic foundation
+   Authoritative semantic roles loaded after legacy globals.css.
+   This consolidates the existing Patch C/C.1 palette; it does not
+   introduce a new visual palette or a new theme mechanism.
+   ========================================================== */
+
+:root {
+  /* Canonical surfaces. */
+  --bs-surface: #fffdf8;
+  --bs-surface-elevated: #ffffff;
+  --bs-surface-inverse: #101923;
+
+  /* Canonical text. */
+  --bs-text-primary: #101923;
+  --bs-text-secondary: #3f4953;
+  --bs-text-muted: #5f6871;
+  --bs-text-on-inverse: #fffdf8;
+  --bs-text-on-inverse-secondary: #d8e0ec;
+  --bs-text-on-inverse-muted: #bdc9d8;
+
+  /* Canonical boundaries. */
+  --bs-border: #d8d3c9;
+  --bs-border-strong: #aaa39a;
+  --bs-ui-border: #8c857b;
+
+  /* Canonical brand / state. */
+  --bs-brand-primary: #3157ff;
+  --bs-positive: #23613f;
+  --bs-warning: #7a560c;
+  --bs-danger: #a83220;
+
+  /* Canonical interaction. */
+  --bs-focus: #3157ff;
+  --bs-focus-gap: #fffdf8;
+
+  /* Status, disabled and selection surfaces retained from C.1. */
+  --bs-positive-surface: #e8f3ec;
+  --bs-warning-surface: #fff4da;
+  --bs-danger-surface: #fff0ec;
+  --bs-disabled-text: #4f5963;
+  --bs-disabled-surface: #ebe7df;
+  --bs-selection-bg: #1733b8;
+  --bs-selection-text: #fffdf8;
+
+  /* Existing page/background and accent roles remain part of production. */
+  --bs-bg: #f4f0e7;
+  --bs-bg-subtle: #f8f5ef;
+  --bs-blue-readable: #1733b8;
+  --bs-blue-soft: #e3e9ff;
+  --bs-lime: #c9f65d;
+  --bs-lime-readable: #53720e;
+  --bs-lime-soft: #eef7d7;
+  --bs-on-lime: #101923;
+
+  /* Compatibility aliases for production consumers. */
+  --bs-surface-raised: var(--bs-surface-elevated);
+  --bs-surface-dark: var(--bs-surface-inverse);
+  --bs-surface-paper: var(--bs-surface);
+  --bs-surface-light: var(--bs-surface);
+  --bs-surface-soft: var(--bs-bg-subtle);
+  --bs-surface-accent: var(--bs-lime);
+
+  --bs-text: var(--bs-text-primary);
+  --bs-text-on-dark: var(--bs-text-on-inverse);
+  --bs-text-on-dark-secondary: var(--bs-text-on-inverse-secondary);
+  --bs-text-on-dark-muted: var(--bs-text-on-inverse-muted);
+  --bs-text-link: var(--bs-blue-readable);
+
+  --bs-blue: var(--bs-brand-primary);
+  --bs-focus-ring: var(--bs-focus);
+  --bs-positive-text: var(--bs-positive);
+  --bs-warning-text: var(--bs-warning);
+  --bs-danger-text: var(--bs-danger);
+  --bs-accent: var(--bs-lime);
+  --bs-accent-readable: var(--bs-lime-readable);
+
+  /* Older presentation aliases still used by legacy BoardSignal CSS. */
+  --background: var(--bs-bg);
+  --foreground: var(--bs-text-primary);
+  --surface: var(--bs-surface);
+  --surface-2: var(--bs-bg-subtle);
+  --surface-3: var(--bs-border);
+  --paper: var(--bs-bg);
+  --white: var(--bs-surface-elevated);
+  --border: var(--bs-border);
+  --border-strong: var(--bs-border-strong);
+  --ink-soft: var(--bs-text-secondary);
+  --text-primary: var(--bs-text-primary);
+  --text-secondary: var(--bs-text-secondary);
+  --text-muted: var(--bs-text-muted);
+  --text-on-brand: var(--bs-text-on-inverse);
+  --signal-blue-dark: var(--bs-blue-readable);
+  --brand-tint: var(--bs-blue-soft);
+  --success: var(--bs-positive);
+  --danger: var(--bs-danger);
+}
+
+html[data-bs-theme="dark"] {
+  --bs-surface: #111c2e;
+  --bs-surface-elevated: #162338;
+  --bs-surface-inverse: #08111e;
+
+  --bs-text-primary: #f6f2e9;
+  --bs-text-secondary: #c5cfdd;
+  --bs-text-muted: #9daabc;
+  --bs-text-on-inverse: #fffdf8;
+  --bs-text-on-inverse-secondary: #d8e0ec;
+  --bs-text-on-inverse-muted: #bdc9d8;
+
+  --bs-border: #26364c;
+  --bs-border-strong: #42526a;
+  --bs-ui-border: #65748c;
+
+  --bs-brand-primary: #6f8dff;
+  --bs-positive: #8bd6a6;
+  --bs-warning: #f2c86e;
+  --bs-danger: #ff9d88;
+
+  --bs-focus: #9fb4ff;
+  --bs-focus-gap: #0b1220;
+
+  --bs-positive-surface: #173225;
+  --bs-warning-surface: #382d18;
+  --bs-danger-surface: #3b2020;
+  --bs-disabled-text: #aeb9c8;
+  --bs-disabled-surface: #202d40;
+  --bs-selection-bg: #9fb4ff;
+  --bs-selection-text: #0b1220;
+
+  --bs-bg: #0b1220;
+  --bs-bg-subtle: #0e1828;
+  --bs-blue-readable: #9fb4ff;
+  --bs-blue-soft: #19284b;
+  --bs-lime: #c9f65d;
+  --bs-lime-readable: #d8fb82;
+  --bs-lime-soft: #26331c;
+  --bs-on-lime: #101923;
+}
+
+/* Reusable semantic surface contracts. */
+:where(.bs-surface-normal, .bs-surface-paper, .bs-surface-light) {
+  background: var(--bs-surface);
+  color: var(--bs-text-primary);
+}
+:where(.bs-surface-elevated) {
+  background: var(--bs-surface-elevated);
+  color: var(--bs-text-primary);
+}
+:where(.bs-surface-inverse, .bs-surface-dark) {
+  background: var(--bs-surface-inverse);
+  color: var(--bs-text-on-inverse);
+}
+
+:where(.bs-surface-normal, .bs-surface-paper, .bs-surface-light, .bs-surface-elevated)
+  :where(h1, h2, h3, h4, strong, label) {
+  color: var(--bs-text-primary);
+}
+:where(.bs-surface-normal, .bs-surface-paper, .bs-surface-light, .bs-surface-elevated)
+  :where(p, small) {
+  color: var(--bs-text-secondary);
+}
+:where(.bs-surface-inverse, .bs-surface-dark)
+  :where(h1, h2, h3, h4, strong, label) {
+  color: var(--bs-text-on-inverse);
+}
+:where(.bs-surface-inverse, .bs-surface-dark) :where(p) {
+  color: var(--bs-text-on-inverse-secondary);
+}
+:where(.bs-surface-inverse, .bs-surface-dark) :where(small) {
+  color: var(--bs-text-on-inverse-muted);
+}
+
+/* State surfaces always carry their own readable foreground. */
+:where(.bs-state-positive) {
+  background: var(--bs-positive-surface);
+  color: var(--bs-positive);
+}
+:where(.bs-state-warning) {
+  background: var(--bs-warning-surface);
+  color: var(--bs-warning);
+}
+:where(.bs-state-danger) {
+  background: var(--bs-danger-surface);
+  color: var(--bs-danger);
+}
+:where(.bs-state-disabled) {
+  background: var(--bs-disabled-surface);
+  color: var(--bs-disabled-text);
+}
+
+/* Brand/accent backgrounds never rely on inherited foreground. */
+:where(.bs-surface-brand) {
+  background: var(--bs-brand-primary);
+  color: var(--bs-text-on-inverse);
+}
+:where(.bs-surface-accent) {
+  background: var(--bs-lime);
+  color: var(--bs-on-lime);
+}

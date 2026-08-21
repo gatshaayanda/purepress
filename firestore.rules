@@ -1,0 +1,664 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isUnsignedClient() {
+      return request.auth == null;
+    }
+
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isBoardSignalAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isAdminWrite() {
+      return isUnsignedClient()
+        && request.resource.data.admin_id is string
+        && request.resource.data.admin_id == 'admin';
+    }
+
+    function isExistingAdminDoc() {
+      return resource.data.admin_id is string
+        && resource.data.admin_id == 'admin';
+    }
+
+    function isOptionalString(field) {
+      return !(field in request.resource.data)
+        || request.resource.data[field] is string;
+    }
+
+    function isOptionalBool(field) {
+      return !(field in request.resource.data)
+        || request.resource.data[field] is bool;
+    }
+
+    function isOptionalList(field) {
+      return !(field in request.resource.data)
+        || request.resource.data[field] is list;
+    }
+
+    function isOptionalMap(field) {
+      return !(field in request.resource.data)
+        || request.resource.data[field] is map;
+    }
+
+    function isOptionalTimestamp(field) {
+      return !(field in request.resource.data)
+        || request.resource.data[field] is timestamp;
+    }
+
+    function isNumberValue(value) {
+      return value is int || value is float;
+    }
+
+    function isOptionalNumber(field) {
+      return !(field in request.resource.data)
+        || isNumberValue(request.resource.data[field]);
+    }
+
+    function hasMessageContent() {
+      return (
+        ('text' in request.resource.data
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0)
+
+        || ('link' in request.resource.data
+          && request.resource.data.link is string
+          && request.resource.data.link.size() > 0)
+
+        || ('fileUrl' in request.resource.data
+          && request.resource.data.fileUrl is string
+          && request.resource.data.fileUrl.size() > 0)
+      );
+    }
+
+    /* ========================================================
+       BLOGS / INSIGHTS
+       Public read
+       Browser-side admin create/update/delete
+       ======================================================== */
+    match /blogs/{blogId} {
+      allow read: if true;
+
+      allow create: if isAdminWrite()
+        && request.resource.data.title is string
+        && request.resource.data.body is string
+        && isOptionalString('imageUrl')
+        && isOptionalString('imageName')
+        && isOptionalString('imageType')
+        && isOptionalTimestamp('created_at')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updated_at')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update: if isAdminWrite()
+        && isExistingAdminDoc()
+        && request.resource.data.title is string
+        && request.resource.data.body is string
+        && isOptionalString('imageUrl')
+        && isOptionalString('imageName')
+        && isOptionalString('imageType')
+        && isOptionalTimestamp('created_at')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updated_at')
+        && isOptionalTimestamp('updatedAt');
+
+      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    }
+
+    /* ========================================================
+       HOMEPAGE HIGHLIGHTS
+       Public read
+       Browser-side admin create/update/delete
+       ======================================================== */
+    match /highlights/{highlightId} {
+      allow read: if true;
+
+      allow create: if isAdminWrite()
+        && request.resource.data.title is string
+        && request.resource.data.desc is string
+        && request.resource.data.imageUrl is string
+        && isNumberValue(request.resource.data.order)
+        && request.resource.data.showOnHome is bool
+        && isOptionalBool('isHero')
+        && isOptionalString('imageName')
+        && isOptionalString('imageType')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update: if isAdminWrite()
+        && isExistingAdminDoc()
+        && request.resource.data.title is string
+        && request.resource.data.desc is string
+        && request.resource.data.imageUrl is string
+        && isNumberValue(request.resource.data.order)
+        && request.resource.data.showOnHome is bool
+        && isOptionalBool('isHero')
+        && isOptionalString('imageName')
+        && isOptionalString('imageType')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    }
+
+    /* ========================================================
+       ADMINHUB GLOBAL SERVICE PACKAGES
+       Public read for /c/* pages
+       Browser-side admin create/update/delete
+       ======================================================== */
+    match /service_packages/{packageId} {
+      allow read: if true;
+
+      allow create: if isAdminWrite()
+        && request.resource.data.name is string
+        && request.resource.data.category is string
+        && request.resource.data.summary is string
+        && isOptionalList('bullets')
+        && isOptionalList('whatItCovers')
+        && isOptionalList('whoItsFor')
+        && isOptionalList('keyNotes')
+        && isOptionalString('price')
+        && isOptionalString('priceRange')
+        && isOptionalString('currency')
+        && isOptionalString('region')
+        && isOptionalString('timeline')
+        && isOptionalString('supportTerms')
+        && isOptionalString('quoteNotes')
+        && isOptionalString('contactPolicy')
+        && isOptionalNumber('order')
+        && isOptionalBool('active')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update: if isAdminWrite()
+        && isExistingAdminDoc()
+        && request.resource.data.name is string
+        && request.resource.data.category is string
+        && request.resource.data.summary is string
+        && isOptionalList('bullets')
+        && isOptionalList('whatItCovers')
+        && isOptionalList('whoItsFor')
+        && isOptionalList('keyNotes')
+        && isOptionalString('price')
+        && isOptionalString('priceRange')
+        && isOptionalString('currency')
+        && isOptionalString('region')
+        && isOptionalString('timeline')
+        && isOptionalString('supportTerms')
+        && isOptionalString('quoteNotes')
+        && isOptionalString('contactPolicy')
+        && isOptionalNumber('order')
+        && isOptionalBool('active')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    }
+
+    /* ========================================================
+       STRUCTURED INQUIRIES / CONTACT
+       Public create
+       Admin browser-side read/update/delete
+       ======================================================== */
+    match /inquiries/{inquiryId} {
+      allow create: if isUnsignedClient()
+        && isOptionalString('name')
+        && isOptionalString('email')
+        && isOptionalString('phone')
+        && isOptionalString('business')
+        && isOptionalString('business_name')
+        && isOptionalString('company')
+        && isOptionalString('country')
+        && isOptionalString('region')
+        && isOptionalString('role')
+        && isOptionalString('message')
+        && isOptionalString('project_type')
+        && isOptionalString('budget')
+        && isOptionalString('timeline')
+        && isOptionalString('status')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow read: if isUnsignedClient();
+
+      allow update: if isUnsignedClient()
+        && (
+          isAdminWrite()
+          || !('admin_id' in resource.data)
+          || isExistingAdminDoc()
+        );
+
+      allow delete: if isUnsignedClient();
+    }
+
+    match /contact_messages/{messageId} {
+      allow create: if isUnsignedClient()
+        && isOptionalString('name')
+        && isOptionalString('email')
+        && isOptionalString('phone')
+        && isOptionalString('business')
+        && isOptionalString('message')
+        && isOptionalString('status')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow read: if isUnsignedClient();
+      allow update, delete: if isUnsignedClient();
+    }
+
+    /* ========================================================
+       PARTNER / AGENT RECORDS
+       AdminHub Global partner-led sales layer
+       ======================================================== */
+    match /partners/{partnerId} {
+      allow read: if isUnsignedClient();
+
+      allow create: if isUnsignedClient()
+        && isOptionalString('name')
+        && isOptionalString('email')
+        && isOptionalString('phone')
+        && isOptionalString('country')
+        && isOptionalString('region')
+        && isOptionalString('status')
+        && isOptionalString('notes')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update, delete: if isUnsignedClient();
+    }
+
+    match /agents/{agentId} {
+      allow read: if isUnsignedClient();
+
+      allow create: if isAdminWrite()
+        && isOptionalString('name')
+        && isOptionalString('email')
+        && isOptionalString('phone')
+        && isOptionalString('country')
+        && isOptionalString('region')
+        && isOptionalString('status')
+        && isOptionalString('notes')
+        && isOptionalNumber('commissionRate')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update: if isUnsignedClient()
+        && (
+          isAdminWrite()
+          || isExistingAdminDoc()
+        );
+
+      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    }
+
+    match /leads/{leadId} {
+      allow read: if isUnsignedClient();
+
+      allow create: if isUnsignedClient()
+        && isOptionalString('name')
+        && isOptionalString('email')
+        && isOptionalString('phone')
+        && isOptionalString('business')
+        && isOptionalString('business_name')
+        && isOptionalString('country')
+        && isOptionalString('region')
+        && isOptionalString('source')
+        && isOptionalString('agent_id')
+        && isOptionalString('status')
+        && isOptionalString('stage')
+        && isOptionalString('notes')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update, delete: if isUnsignedClient();
+    }
+
+    match /opportunities/{opportunityId} {
+      allow read: if isUnsignedClient();
+
+      allow create: if isUnsignedClient()
+        && isOptionalString('name')
+        && isOptionalString('email')
+        && isOptionalString('phone')
+        && isOptionalString('business')
+        && isOptionalString('business_name')
+        && isOptionalString('country')
+        && isOptionalString('region')
+        && isOptionalString('agent_id')
+        && isOptionalString('status')
+        && isOptionalString('stage')
+        && isOptionalString('package')
+        && isOptionalString('notes')
+        && isOptionalNumber('estimatedValue')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update, delete: if isUnsignedClient();
+    }
+
+    /* ========================================================
+       PROJECTS / CLIENT WORKSPACES
+       AdminHub Global client/project records
+       ======================================================== */
+    match /projects/{projectId} {
+      allow read: if true;
+
+      allow create: if isAdminWrite()
+        && isOptionalString('client_name')
+        && isOptionalString('client_email')
+        && isOptionalString('client_phone')
+        && isOptionalString('client_type')
+        && isOptionalString('business')
+        && isOptionalString('business_name')
+        && isOptionalString('company')
+        && isOptionalString('country')
+        && isOptionalString('region')
+        && isOptionalString('city_town')
+        && isOptionalString('city')
+        && isOptionalString('request_type')
+        && isOptionalString('project_type')
+        && isOptionalString('service_package')
+        && isOptionalString('status')
+        && isOptionalString('stage')
+        && isOptionalString('admin_notes')
+        && isOptionalString('progress_update')
+        && isOptionalString('support_summary')
+        && isOptionalString('required_documents')
+        && isOptionalString('resource_link')
+        && isOptionalString('documentUrl')
+        && isOptionalString('documentName')
+        && isOptionalString('documentType')
+        && isOptionalString('goals')
+        && isOptionalString('painpoints')
+        && isOptionalString('pages')
+        && isOptionalString('content')
+        && isOptionalString('features')
+        && isOptionalString('design_prefs')
+        && isOptionalString('examples')
+        && isOptionalString('mood')
+        && isOptionalString('live_revisable_draft_link')
+        && isOptionalBool('portal_access')
+        && isOptionalBool('admin_panel')
+        && isOptionalTimestamp('created_at')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update: if isAdminWrite()
+        && isExistingAdminDoc()
+        && isOptionalString('client_name')
+        && isOptionalString('client_email')
+        && isOptionalString('client_phone')
+        && isOptionalString('client_type')
+        && isOptionalString('business')
+        && isOptionalString('business_name')
+        && isOptionalString('company')
+        && isOptionalString('country')
+        && isOptionalString('region')
+        && isOptionalString('city_town')
+        && isOptionalString('city')
+        && isOptionalString('request_type')
+        && isOptionalString('project_type')
+        && isOptionalString('service_package')
+        && isOptionalString('status')
+        && isOptionalString('stage')
+        && isOptionalString('admin_notes')
+        && isOptionalString('progress_update')
+        && isOptionalString('support_summary')
+        && isOptionalString('required_documents')
+        && isOptionalString('resource_link')
+        && isOptionalString('documentUrl')
+        && isOptionalString('documentName')
+        && isOptionalString('documentType')
+        && isOptionalString('goals')
+        && isOptionalString('painpoints')
+        && isOptionalString('pages')
+        && isOptionalString('content')
+        && isOptionalString('features')
+        && isOptionalString('design_prefs')
+        && isOptionalString('examples')
+        && isOptionalString('mood')
+        && isOptionalString('live_revisable_draft_link')
+        && isOptionalBool('portal_access')
+        && isOptionalBool('admin_panel')
+        && isOptionalTimestamp('created_at')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+
+      match /messages/{messageId} {
+        allow read: if true;
+
+        allow create: if isUnsignedClient()
+          && request.resource.data.sender is string
+          && request.resource.data.timestamp != null
+          && hasMessageContent()
+          && isOptionalString('text')
+          && isOptionalString('link')
+          && isOptionalString('fileUrl')
+          && isOptionalString('fileName')
+          && isOptionalString('fileType');
+
+        allow update: if isUnsignedClient();
+        allow delete: if isUnsignedClient();
+      }
+    }
+
+    /* ========================================================
+       SITE CONTENT / STATIC ADMIN-MANAGED CONTENT
+       ======================================================== */
+    match /site_content/{docId} {
+      allow read: if true;
+
+      allow create: if isAdminWrite();
+      allow update: if isAdminWrite()
+        || isExistingAdminDoc();
+      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    }
+
+    /* ========================================================
+       LEGACY / COMPATIBILITY COLLECTIONS
+       Read-only unless explicitly admin-owned
+       ======================================================== */
+    match /products/{productId} {
+      allow read: if true;
+
+      allow create: if isAdminWrite();
+      allow update: if isAdminWrite() && isExistingAdminDoc();
+      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    }
+
+    match /insurance_products/{productId} {
+      allow read: if true;
+
+      allow create: if isAdminWrite()
+        && request.resource.data.name is string
+        && request.resource.data.category is string
+        && request.resource.data.summary is string
+        && isOptionalList('bullets')
+        && isOptionalList('whatItCovers')
+        && isOptionalList('whoItsFor')
+        && isOptionalList('keyNotes')
+        && isOptionalNumber('order')
+        && isOptionalBool('active')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow update: if isAdminWrite()
+        && isExistingAdminDoc()
+        && request.resource.data.name is string
+        && request.resource.data.category is string
+        && request.resource.data.summary is string
+        && isOptionalList('bullets')
+        && isOptionalList('whatItCovers')
+        && isOptionalList('whoItsFor')
+        && isOptionalList('keyNotes')
+        && isOptionalNumber('order')
+        && isOptionalBool('active')
+        && isOptionalTimestamp('createdAt')
+        && isOptionalTimestamp('updatedAt');
+
+      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    }
+
+
+    /* ========================================================
+       BOARDSIGNAL — IDENTITY, MEMORY & BETA ACCESS
+       ======================================================== */
+    match /users/{userId} {
+      allow read, create, update, delete: if isOwner(userId);
+
+      match /desks/{deskKey} {
+        allow read, create, update, delete: if isOwner(userId);
+
+        match /evidence/{positionId} {
+          allow read, create, update, delete: if isOwner(userId);
+        }
+      }
+
+      // BoardSignal communications are private to the player and server-written.
+      match /inbox/{messageId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      match /conversations/{threadId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+
+        match /messages/{messageId} {
+          allow read: if isOwner(userId);
+          allow write: if false;
+        }
+      }
+
+      match /pushTokens/{tokenId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      match /automationEvents/{eventId} {
+        allow read, write: if false;
+      }
+
+      // Lightweight recent-consciousness snapshot. Owner-readable, server-written.
+      match /pulse/{pulseId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      // Social projections are private to their owner and written only by trusted server routes.
+      // A browser can never write another player's relationship state.
+      match /social/{otherPlayerId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      // Ask BoardSignal keeps only bounded private profile/session/memory/state documents.
+      // Reads are owner-only; all writes flow through authenticated server routes.
+      match /guide/{guideId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      match /guideFeedback/{feedbackId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+    }
+
+    match /publicPlayers/{chessPlayerId} {
+      allow read: if true;
+      allow write: if isBoardSignalAdmin();
+    }
+
+    match /publicCoverage/{coverageId} {
+      allow read: if true;
+      allow write: if isBoardSignalAdmin();
+    }
+
+    // Dynamic Universe events contain only server-approved public-safe sports facts.
+    match /publicUniverseEvents/{eventId} {
+      allow read: if resource.data.safePublic == true;
+      allow write: if isBoardSignalAdmin();
+    }
+
+    // Lightweight share permalinks survive Desk rotation but never contain a private Desk.
+    match /publicShareMoments/{momentId} {
+      allow read: if resource.data.safePublic == true;
+      allow write: if isBoardSignalAdmin();
+    }
+
+    // First-party share attribution is server-only.
+    match /shareAttribution/{eventId} {
+      allow read, write: if false;
+    }
+
+    // Canonical friendship and directional block state are server-only.
+    match /socialRelationships/{relationshipId} {
+      allow read, write: if false;
+    }
+
+    match /socialBlocks/{blockId} {
+      allow read, write: if false;
+    }
+
+    match /socialRequestRateLimits/{limitId} {
+      allow read, write: if false;
+    }
+
+    // Ask BoardSignal product-question aggregates are founder/server operational data only.
+    match /guideAnalytics/{period} {
+      allow read, write: if false;
+    }
+
+    // Founding Beta requests, communications, rate limits and operational exceptions are server/admin only.
+    match /betaRequests/{requestId} {
+      allow read, write: if false;
+    }
+
+    match /betaRequestRateLimits/{limitId} {
+      allow read, write: if false;
+    }
+
+    match /communications/{campaignId} {
+      allow read, write: if false;
+    }
+
+    match /exceptions/{exceptionId} {
+      allow read, write: if false;
+    }
+
+    // Identity ownership maps and one-time auth tickets are server-only.
+    match /chessPlayerAccounts/{playerId} {
+      allow read, write: if false;
+    }
+
+    match /playerIdentityAliases/{alias} {
+      allow read, write: if false;
+    }
+
+    match /authCompletionTickets/{ticketId} {
+      allow read, write: if false;
+    }
+
+    // Founding Beta credentials contain salted hashes and are server-only.
+    match /betaAccess/{playerId} {
+      allow read, write: if false;
+    }
+
+    /* ========================================================
+       DENY EVERYTHING ELSE
+       ======================================================== */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
