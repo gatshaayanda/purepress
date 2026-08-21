@@ -253,9 +253,10 @@ test("previous Blue carries only when supported and summary families are stable 
   assert.equal(toDeskSummary(withheld).previousBlue, undefined);
 });
 
-test("Stockfish 18 worker assets remain byte-for-byte unchanged", () => {
-  const hash = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex");
-  assert.equal(hash("public/stockfish/stockfish-18-lite-single.js"), "5243fd9b276cab7dfe3ad1d43ab9ead73568fac76468c614242977a210c4a391");
-  assert.equal(hash("public/stockfish/stockfish-18-lite-single.wasm"), "a8fbc05ec6920b56d7485826dcb02c5ffd2826bcbf751cf973046f237a9096f1");
-  assert.equal(hash("scripts/stockfish-smoke.mjs"), "3c67ee671c4e0859b14160ed2f3c9c977896530ee6ef4d6329e486e751d64164");
+test("Stockfish 18 worker assets remain unchanged across platform line endings", () => {
+  const hashBytes = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex");
+  const hashNormalizedText = (path: string) => createHash("sha256").update(readFileSync(path, "utf8").replace(/\r\n/g, "\n")).digest("hex");
+  assert.equal(hashBytes("public/stockfish/stockfish-18-lite-single.js"), "5243fd9b276cab7dfe3ad1d43ab9ead73568fac76468c614242977a210c4a391");
+  assert.equal(hashBytes("public/stockfish/stockfish-18-lite-single.wasm"), "a8fbc05ec6920b56d7485826dcb02c5ffd2826bcbf751cf973046f237a9096f1");
+  assert.equal(hashNormalizedText("scripts/stockfish-smoke.mjs"), "3c67ee671c4e0859b14160ed2f3c9c977896530ee6ef4d6329e486e751d64164");
 });

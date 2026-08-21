@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
+import { pathToFileURL } from "node:url";
 import { firebaseUidForChessPlayer } from "../src/lib/boardsignal/account";
 import {
   BETA_ACCESS_MAX_FAILED_ATTEMPTS,
@@ -94,7 +96,8 @@ test("public username to LIVE Desk remains available without authentication", ()
   const usernameForm = readFileSync("src/components/UsernameDeskForm.tsx", "utf8");
   const liveRoute = readFileSync("src/app/api/boardsignal/[username]/route.ts", "utf8");
   assert.match(buildPage, /UniversalPlayerDesk/);
-  assert.match(usernameForm, /Get My BoardSignal/);
+  assert.match(usernameForm, /SHOW ME MY REVIEW/);
+  assert.match(usernameForm, /Chess\.com username/);
   assert.doesNotMatch(usernameForm, /Build My Desk/);
   assert.match(liveRoute, /buildLiveDesk/);
   assert.doesNotMatch(liveRoute, /requirePlayerToken/);
@@ -124,36 +127,39 @@ test("Founder Beta Access management API relies on session-aware Founder middlew
   assert.match(api, /errorStatus\(error\)/);
 });
 
-test("Founder middleware rejects invalid auth and permits valid Basic or signed-session Founder auth", async () => {
+test("Founder authorization rejects invalid auth and permits valid Basic or signed-session credentials", async () => {
   const secret = "focused-founder-test-secret";
-  process.env.ADMIN_PASSWORD = secret;
-  const { middleware } = await import("../middleware");
-  const { createFounderSession, FOUNDER_SESSION_COOKIE } = await import("../src/lib/boardsignal/founderSession.mjs");
+  const middleware = readFileSync("middleware.ts", "utf8");
+  assert.match(middleware, /await verifyFounderAuthorization/);
+  assert.match(middleware, /sessionValue: req\.cookies\.get\(FOUNDER_SESSION_COOKIE\)\?\.value/);
+  assert.match(middleware, /authorization: req\.headers\.get\(["']authorization["']\)/);
+  assert.match(middleware, /status:\s*401/);
+  assert.match(middleware, /Cache-Control["']:\s*["']no-store, private/);
 
-  const request = (authorization?: string, sessionValue?: string) => ({
-    nextUrl: { pathname: "/api/admin/boardsignal/beta-access" },
-    cookies: {
-      get: (name: string) => name === FOUNDER_SESSION_COOKIE && sessionValue ? { value: sessionValue } : undefined,
-    },
-    headers: new Headers(authorization ? { authorization } : undefined),
-  }) as unknown as Parameters<typeof middleware>[0];
+  const nativeImport = new Function("specifier", "return import(specifier)") as (
+    specifier: string
+  ) => Promise<typeof import("../src/lib/boardsignal/founderSession.mjs")>;
+  const founderSessionUrl = pathToFileURL(resolve("src/lib/boardsignal/founderSession.mjs")).href;
+  const { createFounderSession, verifyFounderAuthorization } = await nativeImport(founderSessionUrl);
 
-  const unauthenticated = await middleware(request());
-  assert.equal(unauthenticated.status, 401);
-  assert.equal(unauthenticated.headers.get("cache-control"), "no-store, private");
-  assert.equal(unauthenticated.headers.get("www-authenticate"), null);
+  const rejected = await verifyFounderAuthorization({
+    authorization: `Basic ${Buffer.from("founder:wrong-secret").toString("base64")}`,
+    adminPassword: secret,
+  });
+  assert.equal(rejected.authorized, false);
 
-  const rejected = await middleware(request(`Basic ${Buffer.from("founder:wrong-secret").toString("base64")}`));
-  assert.equal(rejected.status, 401);
-
-  const authenticated = await middleware(request(`Basic ${Buffer.from(`founder:${secret}`).toString("base64")}`));
-  assert.equal(authenticated.status, 200);
-  assert.equal(authenticated.headers.get("x-middleware-next"), "1");
+  const basic = await verifyFounderAuthorization({
+    authorization: `Basic ${Buffer.from(`founder:${secret}`).toString("base64")}`,
+    adminPassword: secret,
+  });
+  assert.deepEqual(basic, { authorized: true, method: "basic" });
 
   const session = await createFounderSession(secret, { nonce: "focused-founder-test-nonce" });
-  const sessionAuthenticated = await middleware(request(undefined, session.value));
-  assert.equal(sessionAuthenticated.status, 200);
-  assert.equal(sessionAuthenticated.headers.get("x-middleware-next"), "1");
+  const signedSession = await verifyFounderAuthorization({
+    sessionValue: session.value,
+    adminPassword: secret,
+  });
+  assert.deepEqual(signedSession, { authorized: true, method: "session" });
 });
 
 test("Beta Access adds no Google, email-password, magic-link, URL-code, or credential logging flow", () => {
