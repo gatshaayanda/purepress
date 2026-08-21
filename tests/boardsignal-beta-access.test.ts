@@ -107,12 +107,14 @@ test("private Player Room remains owner-only and Beta Access records remain serv
   assert.match(rules, /match \/betaAccess\/\{playerId\}[\s\S]*allow read, write: if false/);
 });
 
-test("Founder Beta Access management API relies on the existing Basic Auth middleware without double-auth", () => {
+test("Founder Beta Access management API relies on session-aware Founder middleware without double-auth", () => {
   const middleware = readFileSync("middleware.ts", "utf8");
   const api = readFileSync("src/app/api/admin/boardsignal/beta-access/route.ts", "utf8");
-  assert.match(middleware, /startsWith\('\/api\/admin\/boardsignal\/'\)/);
-  assert.match(middleware, /'\/api\/admin\/boardsignal\/:path\*'/);
-  assert.match(middleware, /Basic realm="Admin Area"/);
+  assert.match(middleware, /startsWith\(["']\/api\/admin\/boardsignal\/["']\)/);
+  assert.match(middleware, /["']\/api\/admin\/boardsignal\/:path\*["']/);
+  assert.match(middleware, /FOUNDER_SESSION_COOKIE/);
+  assert.match(middleware, /verifyFounderAuthorization/);
+  assert.match(middleware, /req\.cookies\.get\(FOUNDER_SESSION_COOKIE\)/);
   assert.doesNotMatch(api, /requireFounderBasicAuth/);
   assert.match(api, /listFounderPlayerIdentities\(\)/);
   assert.match(api, /createFoundingBetaAccess\(body\.username\)/);
@@ -122,24 +124,36 @@ test("Founder Beta Access management API relies on the existing Basic Auth middl
   assert.match(api, /errorStatus\(error\)/);
 });
 
-test("Founder middleware rejects unauthenticated Beta Access requests and permits valid Founder auth", async () => {
-  process.env.ADMIN_PASSWORD = "focused-founder-test-secret";
+test("Founder middleware rejects invalid auth and permits valid Basic or signed-session Founder auth", async () => {
+  const secret = "focused-founder-test-secret";
+  process.env.ADMIN_PASSWORD = secret;
   const { middleware } = await import("../middleware");
-  const request = (authorization?: string) => ({
+  const { createFounderSession, FOUNDER_SESSION_COOKIE } = await import("../src/lib/boardsignal/founderSession.mjs");
+
+  const request = (authorization?: string, sessionValue?: string) => ({
     nextUrl: { pathname: "/api/admin/boardsignal/beta-access" },
+    cookies: {
+      get: (name: string) => name === FOUNDER_SESSION_COOKIE && sessionValue ? { value: sessionValue } : undefined,
+    },
     headers: new Headers(authorization ? { authorization } : undefined),
-  }) as Parameters<typeof middleware>[0];
+  }) as unknown as Parameters<typeof middleware>[0];
 
-  const unauthenticated = middleware(request());
+  const unauthenticated = await middleware(request());
   assert.equal(unauthenticated.status, 401);
-  assert.equal(unauthenticated.headers.get("www-authenticate"), 'Basic realm="Admin Area"');
+  assert.equal(unauthenticated.headers.get("cache-control"), "no-store, private");
+  assert.equal(unauthenticated.headers.get("www-authenticate"), null);
 
-  const rejected = middleware(request(`Basic ${Buffer.from("founder:wrong-secret").toString("base64")}`));
-  assert.equal(rejected.status, 403);
+  const rejected = await middleware(request(`Basic ${Buffer.from("founder:wrong-secret").toString("base64")}`));
+  assert.equal(rejected.status, 401);
 
-  const authenticated = middleware(request(`Basic ${Buffer.from("founder:focused-founder-test-secret").toString("base64")}`));
+  const authenticated = await middleware(request(`Basic ${Buffer.from(`founder:${secret}`).toString("base64")}`));
   assert.equal(authenticated.status, 200);
   assert.equal(authenticated.headers.get("x-middleware-next"), "1");
+
+  const session = await createFounderSession(secret, { nonce: "focused-founder-test-nonce" });
+  const sessionAuthenticated = await middleware(request(undefined, session.value));
+  assert.equal(sessionAuthenticated.status, 200);
+  assert.equal(sessionAuthenticated.headers.get("x-middleware-next"), "1");
 });
 
 test("Beta Access adds no Google, email-password, magic-link, URL-code, or credential logging flow", () => {
