@@ -76,11 +76,12 @@ test('one native service worker preserves push while hardening cache behavior', 
   assert.match(sw, /\/boardsignal\/player-room[\s\S]*\/offline\/player-room/); // 26
   assert.match(sw, /\/player\/[\s\S]*\/share\//); // 27
   assert.match(sw, /url\.pathname\.startsWith\("\/stockfish\/"\)[\s\S]*cacheFirst/); // 28
-  assert.doesNotMatch(installHandlerSource(), /skipWaiting\s*\(/); // 34
+  assert.doesNotMatch(sw.slice(sw.indexOf('const APP_SHELL'), sw.indexOf('self.addEventListener("install"')), /stockfish/); // 29
   assert.match(sw, /self\.addEventListener\("push"/); // 30
   assert.match(sw, /showNotification/); // 31
   assert.match(sw, /self\.addEventListener\("notificationclick"/); // 32
   assert.match(sw, /openWindow/); // 33
+  assert.doesNotMatch(installHandlerSource(), /skipWaiting\s*\(/); // 34
   assert.match(sw, /event\.data\?\.type === "SKIP_WAITING"[\s\S]*self\.skipWaiting\(\)/); // 35
   assert.match(sw, /key\.startsWith\(BOARDSIGNAL_CACHE_PREFIX\)/); // 36
   assert.match(sw, /trimCache\(PUBLIC_CACHE, 24\)/); // 37
