@@ -10,11 +10,13 @@ const FOUNDER_LOGIN_PATH = "/login-secret-login-for-admins97F4B2NXQ";
 function isFounderRoute(pathname: string) {
   return pathname === "/admin"
     || pathname.startsWith("/admin/")
-    || pathname.startsWith("/api/admin/boardsignal/");
+    || pathname.startsWith("/api/admin/boardsignal/")
+    || pathname.startsWith("/api/admin/purepress/");
 }
 
 function isFounderApi(pathname: string) {
-  return pathname.startsWith("/api/admin/boardsignal/");
+  return pathname.startsWith("/api/admin/boardsignal/")
+    || pathname.startsWith("/api/admin/purepress/");
 }
 
 export async function middleware(req: NextRequest) {
@@ -47,5 +49,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*", "/api/admin/boardsignal/:path*"],
+  matcher: ["/admin", "/admin/:path*", "/api/admin/boardsignal/:path*", "/api/admin/purepress/:path*"],
 };

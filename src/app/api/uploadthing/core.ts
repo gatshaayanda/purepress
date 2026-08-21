@@ -6,17 +6,63 @@ import {
   resolveBoardSignalChatUploadActor,
   type BoardSignalChatUploadActor,
 } from "@/lib/boardsignal/server/chatAttachments";
+import { authorizePurePressUpload } from "@/lib/purepress/server/uploadAuthorization";
+import {
+  isPurePressUploadCategory,
+  validatePurePressUploadCandidate,
+} from "@/lib/purepress/uploads";
 
 const f = createUploadthing();
 
 export const ourFileRouter = {
-  // Legacy route retained unchanged because non-BoardSignal ChatPanel still consumes it.
+  // Legacy route retained because inherited non-PurePress screens still consume it.
+  // New PurePress customer/admin code MUST use purePressUpload instead.
   fileUploader: f({
     image: { maxFileSize: "4MB" },
     pdf: { maxFileSize: "2GB" },
   }).onUploadComplete(async ({ file }) => {
     console.log("✅ Uploaded file:", file);
   }),
+
+  purePressUpload: f({
+    blob: { maxFileSize: "16MB", maxFileCount: 1 },
+  }, { awaitServerData: true })
+    .middleware(async ({ req, files }) => {
+      try {
+        if (files.length !== 1) throw new Error("PurePress accepts one file per upload request.");
+        const categoryHeader = req.headers.get("x-purepress-upload-category")?.trim() ?? "";
+        if (!isPurePressUploadCategory(categoryHeader)) throw new Error("A valid PurePress upload category is required.");
+        const jobId = req.headers.get("x-purepress-job-id")?.trim() ?? "";
+        const candidate = files[0];
+        validatePurePressUploadCandidate(categoryHeader, {
+          name: candidate.name,
+          type: candidate.type,
+          size: candidate.size,
+        });
+        const actor = await authorizePurePressUpload(req, categoryHeader, jobId || undefined);
+        return {
+          category: categoryHeader,
+          jobId,
+          actorRole: actor.role,
+          actorUid: actor.uid,
+          customerId: actor.role === "customer" ? actor.customerId : "",
+        };
+      } catch (reason) {
+        throw new UploadThingError(reason instanceof Error ? reason.message : "PurePress upload is not authorized.");
+      }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      // An upload receipt is private by default. Upload completion never creates
+      // a PublicWorkMedia record or publishes customer/order media.
+      return {
+        category: metadata.category,
+        jobId: metadata.jobId || null,
+        actorRole: metadata.actorRole,
+        fileKey: file.key,
+        fileName: file.name,
+        published: false,
+      };
+    }),
 
   boardSignalChatAttachment: f({
     image: { maxFileSize: "4MB", maxFileCount: 1 },

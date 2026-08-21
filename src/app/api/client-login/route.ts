@@ -1,23 +1,19 @@
-// src/app/api/client-login/route.ts
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
 
-const CLIENTS: Record<string, string> = {
-  'kaygatsha@gmail.com': process.env.CLIENT_PASSWORD_KAYGATSHA_GMAIL_COM!,
-   'mingymotsumi@gmail.com': process.env.CLIENT_PASSWORD_MINGYMOTSUMI_GMAIL_COM!,
-    // Add more emails and env keys here as needed
-}
-
-export async function POST(req: Request) {
-  const { password } = await req.json()
-
-  const entry = Object.entries(CLIENTS).find(([_, pw]) => pw === password)
-
-  if (!entry) {
-    return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
-  }
-
-  const [email] = entry
-
-  // Return the email to the client so they can set the cookie
-  return NextResponse.json({ success: true, email })
+/**
+ * The inherited password-map login is intentionally retired for PurePress.
+ * Keeping the route avoids a hard 404 for old links while ensuring production
+ * customer identity is established with Firebase Authentication instead.
+ */
+export async function POST() {
+  return NextResponse.json(
+    {
+      error: "Legacy client-password login has been retired. PurePress customer access uses Firebase Authentication.",
+      code: "PUREPRESS_FIREBASE_AUTH_REQUIRED",
+    },
+    {
+      status: 410,
+      headers: { "Cache-Control": "no-store, private" },
+    }
+  );
 }

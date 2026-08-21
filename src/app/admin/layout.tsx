@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import FounderDeviceMarker from "@/components/FounderDeviceMarker";
+import PurePressAdminFirebaseGate from "@/components/PurePressAdminFirebaseGate";
 
 export const metadata: Metadata = {
   title: "Founder Newsroom",
@@ -7,6 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <><FounderDeviceMarker />{children}</>;
+  return (
+    <>
+      <FounderDeviceMarker />
+      <PurePressAdminFirebaseGate>{children}</PurePressAdminFirebaseGate>
+    </>
+  );
 }
-

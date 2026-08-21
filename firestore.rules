@@ -2,11 +2,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
     function isUnsignedClient() {
       return request.auth == null;
     }
-
 
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
@@ -16,40 +14,25 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    function isAdminWrite() {
-      return isUnsignedClient()
-        && request.resource.data.admin_id is string
-        && request.resource.data.admin_id == 'admin';
-    }
-
-    function isExistingAdminDoc() {
-      return resource.data.admin_id is string
-        && resource.data.admin_id == 'admin';
+    function isPurePressAdmin() {
+      return request.auth != null
+        && (request.auth.token.purepress_admin == true || request.auth.token.admin == true);
     }
 
     function isOptionalString(field) {
-      return !(field in request.resource.data)
-        || request.resource.data[field] is string;
+      return !(field in request.resource.data) || request.resource.data[field] is string;
     }
 
     function isOptionalBool(field) {
-      return !(field in request.resource.data)
-        || request.resource.data[field] is bool;
+      return !(field in request.resource.data) || request.resource.data[field] is bool;
     }
 
     function isOptionalList(field) {
-      return !(field in request.resource.data)
-        || request.resource.data[field] is list;
-    }
-
-    function isOptionalMap(field) {
-      return !(field in request.resource.data)
-        || request.resource.data[field] is map;
+      return !(field in request.resource.data) || request.resource.data[field] is list;
     }
 
     function isOptionalTimestamp(field) {
-      return !(field in request.resource.data)
-        || request.resource.data[field] is timestamp;
+      return !(field in request.resource.data) || request.resource.data[field] is timestamp;
     }
 
     function isNumberValue(value) {
@@ -57,159 +40,68 @@ service cloud.firestore {
     }
 
     function isOptionalNumber(field) {
-      return !(field in request.resource.data)
-        || isNumberValue(request.resource.data[field]);
+      return !(field in request.resource.data) || isNumberValue(request.resource.data[field]);
     }
 
-    function hasMessageContent() {
-      return (
-        ('text' in request.resource.data
-          && request.resource.data.text is string
-          && request.resource.data.text.size() > 0)
+    function isValidEmail(value) {
+      return value is string
+        && value.size() >= 3
+        && value.size() <= 254
+        && value.matches('^[^@]+@[^@]+[.][^@]+$');
+    }
 
-        || ('link' in request.resource.data
-          && request.resource.data.link is string
-          && request.resource.data.link.size() > 0)
-
-        || ('fileUrl' in request.resource.data
-          && request.resource.data.fileUrl is string
-          && request.resource.data.fileUrl.size() > 0)
-      );
+    function isReasonableText(value, maxSize) {
+      return value is string && value.size() > 0 && value.size() <= maxSize;
     }
 
     /* ========================================================
-       BLOGS / INSIGHTS
-       Public read
-       Browser-side admin create/update/delete
+       INTENTIONALLY PUBLIC SITE CONTENT
+       Reads are public; writes require authenticated admin claim.
        ======================================================== */
     match /blogs/{blogId} {
       allow read: if true;
-
-      allow create: if isAdminWrite()
-        && request.resource.data.title is string
-        && request.resource.data.body is string
-        && isOptionalString('imageUrl')
-        && isOptionalString('imageName')
-        && isOptionalString('imageType')
-        && isOptionalTimestamp('created_at')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updated_at')
-        && isOptionalTimestamp('updatedAt');
-
-      allow update: if isAdminWrite()
-        && isExistingAdminDoc()
-        && request.resource.data.title is string
-        && request.resource.data.body is string
-        && isOptionalString('imageUrl')
-        && isOptionalString('imageName')
-        && isOptionalString('imageType')
-        && isOptionalTimestamp('created_at')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updated_at')
-        && isOptionalTimestamp('updatedAt');
-
-      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+      allow create, update, delete: if isPurePressAdmin();
     }
 
-    /* ========================================================
-       HOMEPAGE HIGHLIGHTS
-       Public read
-       Browser-side admin create/update/delete
-       ======================================================== */
     match /highlights/{highlightId} {
       allow read: if true;
-
-      allow create: if isAdminWrite()
-        && request.resource.data.title is string
-        && request.resource.data.desc is string
-        && request.resource.data.imageUrl is string
-        && isNumberValue(request.resource.data.order)
-        && request.resource.data.showOnHome is bool
-        && isOptionalBool('isHero')
-        && isOptionalString('imageName')
-        && isOptionalString('imageType')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow update: if isAdminWrite()
-        && isExistingAdminDoc()
-        && request.resource.data.title is string
-        && request.resource.data.desc is string
-        && request.resource.data.imageUrl is string
-        && isNumberValue(request.resource.data.order)
-        && request.resource.data.showOnHome is bool
-        && isOptionalBool('isHero')
-        && isOptionalString('imageName')
-        && isOptionalString('imageType')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+      allow create, update, delete: if isPurePressAdmin();
     }
 
-    /* ========================================================
-       ADMINHUB GLOBAL SERVICE PACKAGES
-       Public read for /c/* pages
-       Browser-side admin create/update/delete
-       ======================================================== */
     match /service_packages/{packageId} {
       allow read: if true;
+      allow create, update, delete: if isPurePressAdmin();
+    }
 
-      allow create: if isAdminWrite()
-        && request.resource.data.name is string
-        && request.resource.data.category is string
-        && request.resource.data.summary is string
-        && isOptionalList('bullets')
-        && isOptionalList('whatItCovers')
-        && isOptionalList('whoItsFor')
-        && isOptionalList('keyNotes')
-        && isOptionalString('price')
-        && isOptionalString('priceRange')
-        && isOptionalString('currency')
-        && isOptionalString('region')
-        && isOptionalString('timeline')
-        && isOptionalString('supportTerms')
-        && isOptionalString('quoteNotes')
-        && isOptionalString('contactPolicy')
-        && isOptionalNumber('order')
-        && isOptionalBool('active')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
+    match /site_content/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isPurePressAdmin();
+    }
 
-      allow update: if isAdminWrite()
-        && isExistingAdminDoc()
-        && request.resource.data.name is string
-        && request.resource.data.category is string
-        && request.resource.data.summary is string
-        && isOptionalList('bullets')
-        && isOptionalList('whatItCovers')
-        && isOptionalList('whoItsFor')
-        && isOptionalList('keyNotes')
-        && isOptionalString('price')
-        && isOptionalString('priceRange')
-        && isOptionalString('currency')
-        && isOptionalString('region')
-        && isOptionalString('timeline')
-        && isOptionalString('supportTerms')
-        && isOptionalString('quoteNotes')
-        && isOptionalString('contactPolicy')
-        && isOptionalNumber('order')
-        && isOptionalBool('active')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isPurePressAdmin();
+    }
 
-      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    match /insurance_products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isPurePressAdmin();
     }
 
     /* ========================================================
-       STRUCTURED INQUIRIES / CONTACT
-       Public create
-       Admin browser-side read/update/delete
+       LEGACY PUBLIC CONTACT INTAKE
+       Public can submit narrowly-shaped records, never read them.
        ======================================================== */
     match /inquiries/{inquiryId} {
       allow create: if isUnsignedClient()
+        && request.resource.data.keys().hasOnly([
+          'name', 'email', 'phone', 'business', 'business_name', 'company',
+          'country', 'region', 'role', 'message', 'project_type', 'budget',
+          'timeline', 'status', 'createdAt', 'updatedAt'
+        ])
+        && isValidEmail(request.resource.data.email)
+        && isReasonableText(request.resource.data.message, 5000)
         && isOptionalString('name')
-        && isOptionalString('email')
         && isOptionalString('phone')
         && isOptionalString('business')
         && isOptionalString('business_name')
@@ -217,7 +109,6 @@ service cloud.firestore {
         && isOptionalString('country')
         && isOptionalString('region')
         && isOptionalString('role')
-        && isOptionalString('message')
         && isOptionalString('project_type')
         && isOptionalString('budget')
         && isOptionalString('timeline')
@@ -225,291 +116,157 @@ service cloud.firestore {
         && isOptionalTimestamp('createdAt')
         && isOptionalTimestamp('updatedAt');
 
-      allow read: if isUnsignedClient();
-
-      allow update: if isUnsignedClient()
-        && (
-          isAdminWrite()
-          || !('admin_id' in resource.data)
-          || isExistingAdminDoc()
-        );
-
-      allow delete: if isUnsignedClient();
+      allow read, update, delete: if isPurePressAdmin();
     }
 
     match /contact_messages/{messageId} {
       allow create: if isUnsignedClient()
+        && request.resource.data.keys().hasOnly([
+          'name', 'email', 'phone', 'business', 'message', 'status', 'createdAt', 'updatedAt'
+        ])
+        && isValidEmail(request.resource.data.email)
+        && isReasonableText(request.resource.data.message, 5000)
         && isOptionalString('name')
-        && isOptionalString('email')
         && isOptionalString('phone')
         && isOptionalString('business')
-        && isOptionalString('message')
         && isOptionalString('status')
         && isOptionalTimestamp('createdAt')
         && isOptionalTimestamp('updatedAt');
 
-      allow read: if isUnsignedClient();
-      allow update, delete: if isUnsignedClient();
+      allow read, update, delete: if isPurePressAdmin();
     }
 
     /* ========================================================
-       PARTNER / AGENT RECORDS
-       AdminHub Global partner-led sales layer
+       INTERNAL CRM / ADMINHUB RECORDS
+       No anonymous reads or writes.
        ======================================================== */
     match /partners/{partnerId} {
-      allow read: if isUnsignedClient();
-
-      allow create: if isUnsignedClient()
-        && isOptionalString('name')
-        && isOptionalString('email')
-        && isOptionalString('phone')
-        && isOptionalString('country')
-        && isOptionalString('region')
-        && isOptionalString('status')
-        && isOptionalString('notes')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow update, delete: if isUnsignedClient();
+      allow read, create, update, delete: if isPurePressAdmin();
     }
 
     match /agents/{agentId} {
-      allow read: if isUnsignedClient();
-
-      allow create: if isAdminWrite()
-        && isOptionalString('name')
-        && isOptionalString('email')
-        && isOptionalString('phone')
-        && isOptionalString('country')
-        && isOptionalString('region')
-        && isOptionalString('status')
-        && isOptionalString('notes')
-        && isOptionalNumber('commissionRate')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow update: if isUnsignedClient()
-        && (
-          isAdminWrite()
-          || isExistingAdminDoc()
-        );
-
-      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+      allow read, create, update, delete: if isPurePressAdmin();
     }
 
     match /leads/{leadId} {
-      allow read: if isUnsignedClient();
-
-      allow create: if isUnsignedClient()
-        && isOptionalString('name')
-        && isOptionalString('email')
-        && isOptionalString('phone')
-        && isOptionalString('business')
-        && isOptionalString('business_name')
-        && isOptionalString('country')
-        && isOptionalString('region')
-        && isOptionalString('source')
-        && isOptionalString('agent_id')
-        && isOptionalString('status')
-        && isOptionalString('stage')
-        && isOptionalString('notes')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow update, delete: if isUnsignedClient();
+      allow read, create, update, delete: if isPurePressAdmin();
     }
 
     match /opportunities/{opportunityId} {
-      allow read: if isUnsignedClient();
-
-      allow create: if isUnsignedClient()
-        && isOptionalString('name')
-        && isOptionalString('email')
-        && isOptionalString('phone')
-        && isOptionalString('business')
-        && isOptionalString('business_name')
-        && isOptionalString('country')
-        && isOptionalString('region')
-        && isOptionalString('agent_id')
-        && isOptionalString('status')
-        && isOptionalString('stage')
-        && isOptionalString('package')
-        && isOptionalString('notes')
-        && isOptionalNumber('estimatedValue')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow update, delete: if isUnsignedClient();
+      allow read, create, update, delete: if isPurePressAdmin();
     }
 
     /* ========================================================
-       PROJECTS / CLIENT WORKSPACES
-       AdminHub Global client/project records
+       PUREPRESS QUOTE INTAKE
+       Public create is intentionally narrow. Raw requests are admin-only.
+       ======================================================== */
+    match /purepressQuoteRequests/{requestId} {
+      allow create: if request.resource.data.keys().hasOnly([
+          'name', 'email', 'phone', 'companyName', 'garmentType', 'quantity',
+          'requestDetails', 'artworkNotes', 'deadlineNotes', 'source', 'status', 'createdAt'
+        ])
+        && isReasonableText(request.resource.data.name, 120)
+        && isValidEmail(request.resource.data.email)
+        && isReasonableText(request.resource.data.requestDetails, 5000)
+        && request.resource.data.status == 'new_request'
+        && request.resource.data.source == 'public'
+        && request.resource.data.createdAt is timestamp
+        && isOptionalString('phone')
+        && isOptionalString('companyName')
+        && isOptionalString('garmentType')
+        && isOptionalNumber('quantity')
+        && isOptionalString('artworkNotes')
+        && isOptionalString('deadlineNotes');
+
+      allow read, update, delete: if isPurePressAdmin();
+    }
+
+    /* ========================================================
+       PROJECTS / EMBROIDERY JOB COMPATIBILITY ROOT
+       Raw inherited project records can contain internal notes, so they are
+       never customer-readable. Customers consume safe projections below.
        ======================================================== */
     match /projects/{projectId} {
-      allow read: if true;
-
-      allow create: if isAdminWrite()
-        && isOptionalString('client_name')
-        && isOptionalString('client_email')
-        && isOptionalString('client_phone')
-        && isOptionalString('client_type')
-        && isOptionalString('business')
-        && isOptionalString('business_name')
-        && isOptionalString('company')
-        && isOptionalString('country')
-        && isOptionalString('region')
-        && isOptionalString('city_town')
-        && isOptionalString('city')
-        && isOptionalString('request_type')
-        && isOptionalString('project_type')
-        && isOptionalString('service_package')
-        && isOptionalString('status')
-        && isOptionalString('stage')
-        && isOptionalString('admin_notes')
-        && isOptionalString('progress_update')
-        && isOptionalString('support_summary')
-        && isOptionalString('required_documents')
-        && isOptionalString('resource_link')
-        && isOptionalString('documentUrl')
-        && isOptionalString('documentName')
-        && isOptionalString('documentType')
-        && isOptionalString('goals')
-        && isOptionalString('painpoints')
-        && isOptionalString('pages')
-        && isOptionalString('content')
-        && isOptionalString('features')
-        && isOptionalString('design_prefs')
-        && isOptionalString('examples')
-        && isOptionalString('mood')
-        && isOptionalString('live_revisable_draft_link')
-        && isOptionalBool('portal_access')
-        && isOptionalBool('admin_panel')
-        && isOptionalTimestamp('created_at')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow update: if isAdminWrite()
-        && isExistingAdminDoc()
-        && isOptionalString('client_name')
-        && isOptionalString('client_email')
-        && isOptionalString('client_phone')
-        && isOptionalString('client_type')
-        && isOptionalString('business')
-        && isOptionalString('business_name')
-        && isOptionalString('company')
-        && isOptionalString('country')
-        && isOptionalString('region')
-        && isOptionalString('city_town')
-        && isOptionalString('city')
-        && isOptionalString('request_type')
-        && isOptionalString('project_type')
-        && isOptionalString('service_package')
-        && isOptionalString('status')
-        && isOptionalString('stage')
-        && isOptionalString('admin_notes')
-        && isOptionalString('progress_update')
-        && isOptionalString('support_summary')
-        && isOptionalString('required_documents')
-        && isOptionalString('resource_link')
-        && isOptionalString('documentUrl')
-        && isOptionalString('documentName')
-        && isOptionalString('documentType')
-        && isOptionalString('goals')
-        && isOptionalString('painpoints')
-        && isOptionalString('pages')
-        && isOptionalString('content')
-        && isOptionalString('features')
-        && isOptionalString('design_prefs')
-        && isOptionalString('examples')
-        && isOptionalString('mood')
-        && isOptionalString('live_revisable_draft_link')
-        && isOptionalBool('portal_access')
-        && isOptionalBool('admin_panel')
-        && isOptionalTimestamp('created_at')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+      allow read, create, update, delete: if isPurePressAdmin();
 
       match /messages/{messageId} {
-        allow read: if true;
-
-        allow create: if isUnsignedClient()
-          && request.resource.data.sender is string
-          && request.resource.data.timestamp != null
-          && hasMessageContent()
-          && isOptionalString('text')
-          && isOptionalString('link')
-          && isOptionalString('fileUrl')
-          && isOptionalString('fileName')
-          && isOptionalString('fileType');
-
-        allow update: if isUnsignedClient();
-        allow delete: if isUnsignedClient();
+        allow read, create, update, delete: if isPurePressAdmin();
       }
     }
 
     /* ========================================================
-       SITE CONTENT / STATIC ADMIN-MANAGED CONTENT
+       PUREPRESS CUSTOMER AUTHORIZATION + SAFE PROJECTIONS
+       Server/Admin SDK writes these records. Customers can only read their UID.
        ======================================================== */
-    match /site_content/{docId} {
-      allow read: if true;
+    match /purepressCustomerProfiles/{userId} {
+      allow read: if isOwner(userId)
+        && resource.data.keys().hasOnly([
+          'uid', 'customerId', 'email', 'displayName', 'phone', 'companyName', 'createdAt', 'updatedAt'
+        ])
+        && resource.data.uid == userId;
+      allow write: if false;
+    }
 
-      allow create: if isAdminWrite();
-      allow update: if isAdminWrite()
-        || isExistingAdminDoc();
-      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    match /purepressJobAccess/{userId}/jobs/{jobId} {
+      allow read: if isOwner(userId)
+        && resource.data.customerUid == userId
+        && resource.data.jobId == jobId;
+      allow write: if false;
+    }
+
+    match /purepressOrderViews/{viewId} {
+      allow read: if request.auth != null
+        && resource.data.customerUid == request.auth.uid
+        && resource.data.keys().hasOnly([
+          'orderId', 'projectId', 'customerId', 'customerUid', 'status', 'title',
+          'summary', 'quantity', 'nextStep', 'customerNotes', 'files', 'proof',
+          'updates', 'createdAt', 'updatedAt'
+        ]);
+      allow write: if false;
+    }
+
+    match /purepressOrderMessages/{messageId} {
+      allow read: if isPurePressAdmin()
+        || (request.auth != null
+          && resource.data.customerUid == request.auth.uid
+          && resource.data.visibility == 'customer'
+          && exists(/databases/$(database)/documents/purepressJobAccess/$(request.auth.uid)/jobs/$(resource.data.jobId)));
+
+      allow create: if isPurePressAdmin()
+        || (request.auth != null
+          && request.resource.data.keys().hasOnly([
+            'jobId', 'orderId', 'customerUid', 'senderType', 'senderUid', 'visibility',
+            'text', 'attachmentFileIds', 'createdAt'
+          ])
+          && request.resource.data.customerUid == request.auth.uid
+          && request.resource.data.senderUid == request.auth.uid
+          && request.resource.data.senderType == 'customer'
+          && request.resource.data.visibility == 'customer'
+          && request.resource.data.jobId is string
+          && request.resource.data.orderId is string
+          && request.resource.data.createdAt is timestamp
+          && isOptionalString('text')
+          && isOptionalList('attachmentFileIds')
+          && (('text' in request.resource.data && request.resource.data.text.size() > 0)
+            || ('attachmentFileIds' in request.resource.data && request.resource.data.attachmentFileIds.size() > 0))
+          && exists(/databases/$(database)/documents/purepressJobAccess/$(request.auth.uid)/jobs/$(request.resource.data.jobId)));
+
+      allow update, delete: if isPurePressAdmin();
     }
 
     /* ========================================================
-       LEGACY / COMPATIBILITY COLLECTIONS
-       Read-only unless explicitly admin-owned
+       PUREPRESS PUBLIC WORK MEDIA
+       Uploads/gallery candidates are private until a separate deliberate
+       publication record is both published and marked safePublic.
        ======================================================== */
-    match /products/{productId} {
-      allow read: if true;
-
-      allow create: if isAdminWrite();
-      allow update: if isAdminWrite() && isExistingAdminDoc();
-      allow delete: if isUnsignedClient() && isExistingAdminDoc();
+    match /purepressPublicWorkMedia/{mediaId} {
+      allow read: if resource.data.published == true && resource.data.safePublic == true;
+      allow create, update, delete: if isPurePressAdmin();
     }
-
-    match /insurance_products/{productId} {
-      allow read: if true;
-
-      allow create: if isAdminWrite()
-        && request.resource.data.name is string
-        && request.resource.data.category is string
-        && request.resource.data.summary is string
-        && isOptionalList('bullets')
-        && isOptionalList('whatItCovers')
-        && isOptionalList('whoItsFor')
-        && isOptionalList('keyNotes')
-        && isOptionalNumber('order')
-        && isOptionalBool('active')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow update: if isAdminWrite()
-        && isExistingAdminDoc()
-        && request.resource.data.name is string
-        && request.resource.data.category is string
-        && request.resource.data.summary is string
-        && isOptionalList('bullets')
-        && isOptionalList('whatItCovers')
-        && isOptionalList('whoItsFor')
-        && isOptionalList('keyNotes')
-        && isOptionalNumber('order')
-        && isOptionalBool('active')
-        && isOptionalTimestamp('createdAt')
-        && isOptionalTimestamp('updatedAt');
-
-      allow delete: if isUnsignedClient() && isExistingAdminDoc();
-    }
-
 
     /* ========================================================
        BOARDSIGNAL — IDENTITY, MEMORY & BETA ACCESS
+       Preserved for inherited code during the PurePress transition.
        ======================================================== */
     match /users/{userId} {
       allow read, create, update, delete: if isOwner(userId);
@@ -522,7 +279,6 @@ service cloud.firestore {
         }
       }
 
-      // BoardSignal communications are private to the player and server-written.
       match /inbox/{messageId} {
         allow read: if isOwner(userId);
         allow write: if false;
@@ -547,21 +303,16 @@ service cloud.firestore {
         allow read, write: if false;
       }
 
-      // Lightweight recent-consciousness snapshot. Owner-readable, server-written.
       match /pulse/{pulseId} {
         allow read: if isOwner(userId);
         allow write: if false;
       }
 
-      // Social projections are private to their owner and written only by trusted server routes.
-      // A browser can never write another player's relationship state.
       match /social/{otherPlayerId} {
         allow read: if isOwner(userId);
         allow write: if false;
       }
 
-      // Ask BoardSignal keeps only bounded private profile/session/memory/state documents.
-      // Reads are owner-only; all writes flow through authenticated server routes.
       match /guide/{guideId} {
         allow read: if isOwner(userId);
         allow write: if false;
@@ -571,7 +322,6 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow write: if false;
       }
-
     }
 
     match /publicPlayers/{chessPlayerId} {
@@ -584,24 +334,20 @@ service cloud.firestore {
       allow write: if isBoardSignalAdmin();
     }
 
-    // Dynamic Universe events contain only server-approved public-safe sports facts.
     match /publicUniverseEvents/{eventId} {
       allow read: if resource.data.safePublic == true;
       allow write: if isBoardSignalAdmin();
     }
 
-    // Lightweight share permalinks survive Desk rotation but never contain a private Desk.
     match /publicShareMoments/{momentId} {
       allow read: if resource.data.safePublic == true;
       allow write: if isBoardSignalAdmin();
     }
 
-    // First-party share attribution is server-only.
     match /shareAttribution/{eventId} {
       allow read, write: if false;
     }
 
-    // Canonical friendship and directional block state are server-only.
     match /socialRelationships/{relationshipId} {
       allow read, write: if false;
     }
@@ -614,12 +360,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Ask BoardSignal product-question aggregates are founder/server operational data only.
     match /guideAnalytics/{period} {
       allow read, write: if false;
     }
 
-    // Founding Beta requests, communications, rate limits and operational exceptions are server/admin only.
     match /betaRequests/{requestId} {
       allow read, write: if false;
     }
@@ -636,7 +380,6 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Identity ownership maps and one-time auth tickets are server-only.
     match /chessPlayerAccounts/{playerId} {
       allow read, write: if false;
     }
@@ -649,7 +392,6 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Founding Beta credentials contain salted hashes and are server-only.
     match /betaAccess/{playerId} {
       allow read, write: if false;
     }

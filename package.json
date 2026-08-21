@@ -5,7 +5,7 @@
   "scripts": {
     "prepare:stockfish": "node scripts/prepare-stockfish.mjs",
     "postinstall": "npm run prepare:stockfish",
-    "prebuild": "npm run prepare:stockfish && npm run test:contrast",
+    "prebuild": "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:critical && npm run test:pwa",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -23,7 +23,8 @@
     "test:delivery": "node --test tests/boardsignal-delivery-polish.test.cjs",
     "test:activation": "tsc -p tsconfig.activation-bridge.json && node --test tests/boardsignal-activation-bridge.test.cjs",
     "test:legacy-beta-access": "node --test tests/boardsignal-legacy-beta-access-compat.test.cjs",
-    "test:preview-return": "tsc -p tsconfig.preview-return.json && node --test tests/boardsignal-preview-return-device-access.test.cjs"
+    "test:preview-return": "tsc -p tsconfig.preview-return.json && node --test tests/boardsignal-preview-return-device-access.test.cjs",
+    "test:purepress": "node --test tests/purepress-security-domain-foundation.test.cjs"
   },
   "dependencies": {
     "@uploadthing/react": "^7.3.3",
