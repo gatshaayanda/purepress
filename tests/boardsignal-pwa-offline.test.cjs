@@ -76,12 +76,11 @@ test('one native service worker preserves push while hardening cache behavior', 
   assert.match(sw, /\/boardsignal\/player-room[\s\S]*\/offline\/player-room/); // 26
   assert.match(sw, /\/player\/[\s\S]*\/share\//); // 27
   assert.match(sw, /url\.pathname\.startsWith\("\/stockfish\/"\)[\s\S]*cacheFirst/); // 28
-  assert.doesNotMatch(sw.slice(sw.indexOf('const APP_SHELL'), sw.indexOf('self.addEventListener("install"')), /stockfish/); // 29
+  assert.doesNotMatch(installHandlerSource(), /skipWaiting\s*\(/); // 34
   assert.match(sw, /self\.addEventListener\("push"/); // 30
   assert.match(sw, /showNotification/); // 31
   assert.match(sw, /self\.addEventListener\("notificationclick"/); // 32
   assert.match(sw, /openWindow/); // 33
-  assert.doesNotMatch(installHandlerSource(), /skipWaiting\s*\(/); // 34
   assert.match(sw, /event\.data\?\.type === "SKIP_WAITING"[\s\S]*self\.skipWaiting\(\)/); // 35
   assert.match(sw, /key\.startsWith\(BOARDSIGNAL_CACHE_PREFIX\)/); // 36
   assert.match(sw, /trimCache\(PUBLIC_CACHE, 24\)/); // 37
@@ -143,7 +142,7 @@ test('network-only social and account mutations do not fake success offline', ()
   assert.match(read('src/components/PlayerProfileNotifications.tsx'), /disabled=\{busy \|\| !connectivity\.online/); // 81
   assert.match(room, /Reconnect before accepting the Founding Access Agreement/);
   assert.match(room, /Reconnect before changing BoardSignal account or communication settings/);
-  assert.match(room, /Reconnect before generating or publishing a Desk/);
+  assert.match(room, /Reconnect before finishing or saving a review/);
   assert.match(room, /connectivity\.state !== "offline"[\s\S]*loadPlayerRoomOfflineSnapshot\(user\.uid\)/);
   assert.match(room, /Reconnect to sign in/);
   assert.match(push, /navigator\.serviceWorker\.ready/); // 82
@@ -153,7 +152,7 @@ test('network-only social and account mutations do not fake success offline', ()
 test('Friends loading-loop hotfix remains intact', () => {
   assert.match(friends, /const onChangedRef = useRef\(onChanged\)/); // 84
   assert.match(friends, /useEffect\(\(\) => \{ onChangedRef\.current = onChanged; \}, \[onChanged\]\)/); // 85
-  assert.match(friends, /const load = useCallback[\s\S]*\}, \[token\]\)/); // 86
+  assert.match(friends, /const load = useCallback[\s\S]*\}, \[messageTarget, token\]\)/); // 86
   assert.doesNotMatch(friends, /\}, \[onChanged, token/); // 87
   assert.match(friends, /loadedTokenRef = useRef<string \| undefined>\(undefined\)/); // 88
   assert.match(friends, /AbortController/); // 89
@@ -212,12 +211,14 @@ test('offline page and standalone CSS preserve readable native-feeling UX', () =
   assert.match(css, /\.install-card \{ display: none !important; \}/); // 130
 });
 
-test('artifact QA keeps production prebuild stable and adds PWA suite separately', () => {
-  assert.equal(pkg.scripts.prebuild, 'npm run prepare:stockfish && npm run test:contrast'); // 131
+test('PurePress build gate runs inherited and PurePress regressions without adding PWA dependencies', () => {
+  assert.equal(pkg.scripts.prebuild, 'npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:critical && npm run test:pwa'); // 131
   assert.ok(pkg.scripts['test:pwa']); // 132
-  assert.doesNotMatch(pkg.scripts.prebuild, /test:pwa/); // 133
-  assert.equal(pkg.dependencies?.workbox, undefined); // 134
-  assert.equal(pkg.dependencies?.['next-pwa'], undefined); // 135
+  assert.match(pkg.scripts.prebuild, /test:purepress/); // 133
+  assert.match(pkg.scripts.prebuild, /test:critical/); // 134
+  assert.match(pkg.scripts.prebuild, /test:pwa/); // 135
+  assert.equal(pkg.dependencies?.workbox, undefined); // 136
+  assert.equal(pkg.dependencies?.['next-pwa'], undefined); // 137
   const pwaSources = [
     'src/lib/boardsignal/offline/db.ts',
     'src/lib/boardsignal/offline/types.ts',
@@ -227,5 +228,5 @@ test('artifact QA keeps production prebuild stable and adds PWA suite separately
     'src/components/ConnectivityProvider.tsx',
     'src/components/DeviceOfflineControl.tsx',
   ].map(read).join('\n');
-  assert.doesNotMatch(pwaSources, /process\.env\./); // 136
+  assert.doesNotMatch(pwaSources, /process\.env\./); // 138
 });
