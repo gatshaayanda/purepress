@@ -91,12 +91,12 @@ test('one native service worker preserves push while hardening cache behavior', 
 });
 
 test('service worker update is player-controlled and reloads once', () => {
-  assert.match(register, /registration\?\.waiting/); // 41
+  assert.match(register, /registration\.waiting/); // 41
   assert.match(register, /BoardSignal update ready/); // 42
   assert.match(register, /waiting\.postMessage\(\{ type: "SKIP_WAITING" \}\)/); // 43
   assert.match(register, /controllerchange/); // 44
-  assert.match(register, /reloadedRef\.current/); // 45
-  assert.match(register, /Your current session will not reload by itself/); // 46
+  assert.match(register, /reloadForUpdateRef\.current/); // 45
+  assert.match(register, /Your current screen will not reload on its own/); // 46
 });
 
 test('private IndexedDB data is UID-scoped and bounded', () => {
@@ -119,17 +119,17 @@ test('private IndexedDB data is UID-scoped and bounded', () => {
 
 test('offline Player Room is a saved truthful read-only sports desk', () => {
   assert.match(offlinePlayerPage, /OfflinePlayerRoom/); // 62
-  assert.match(offlineRoom, /Offline • showing your saved BoardSignal from/); // 63
-  assert.match(offlineRoom, /New Chess\.com games, Pulse movement, messages and account changes will appear after you reconnect/); // 64
-  assert.match(offlineRoom, /Latest four active Desks/); // 65
+  assert.match(offlineRoom, /offline\. Showing your saved BoardSignal from/); // 63
+  assert.match(offlineRoom, /New Chess\.com games, Pulse movement, messages and account changes are not included after/); // 64
+  assert.match(offlineRoom, /Latest four saved Reviews/); // 65
   assert.match(offlineRoom, /UniversalPlayerDesk[\s\S]*publishedDesk=/); // 66
   assert.match(offlineRoom, /PROGRESS · SAVED/); // 67
   assert.match(offlineRoom, /PULSE · LAST SYNCHRONIZED/); // 68
-  assert.match(offlineRoom, /UNIVERSE · OFFLINE SNAPSHOT/); // 69
+  assert.match(offlineRoom, /UNIVERSE · SAVED/); // 69
   assert.match(offlineRoom, /What's Hot — saved/); // 70
   assert.match(offlineRoom, /FRIENDS · SAVED/); // 71
   assert.match(offlineRoom, /Inbox needs a connection/); // 72
-  assert.match(offlineRoom, /No new episode analysis runs offline/); // 73
+  assert.match(offlineRoom, /no new analysis runs offline/); // 73
   assert.match(offlineRoom, /No BoardSignal has been saved for this account on this device yet/); // 74
 });
 
