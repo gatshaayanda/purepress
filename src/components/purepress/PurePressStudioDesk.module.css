@@ -1,0 +1,48 @@
+.shell { margin-top: 26px; border: 2px solid var(--pp-charcoal); background: #fff; }
+.heroRow { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding: clamp(20px,4vw,38px); border-bottom: 2px solid var(--pp-charcoal); background: linear-gradient(120deg,#fff 0%,#f4fbfd 70%,#fff5c9 100%); }
+.heroRow h1 { margin: 7px 0 10px; font-size: clamp(2.4rem,6vw,5rem); line-height: .9; letter-spacing: -.05em; }
+.heroRow p { margin: 0; max-width: 67ch; line-height: 1.6; color: var(--pp-muted); }
+.addButton,.openButton { min-height: 48px; border: 2px solid var(--pp-charcoal); background: var(--pp-yellow); color: var(--pp-charcoal); padding: 12px 16px; font: inherit; font-size: .78rem; font-weight: 950; letter-spacing: .06em; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.addButton:hover,.openButton:hover { background: var(--pp-cyan); }
+.addButton:focus-visible,.openButton:focus-visible,.tab:focus-visible,.tabActive:focus-visible,.createForm input:focus-visible,.createForm select:focus-visible,.createForm textarea:focus-visible { outline: 3px solid var(--pp-magenta); outline-offset: 2px; }
+.viewTabs { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); border-bottom: 2px solid var(--pp-charcoal); }
+.tab,.tabActive { min-height: 70px; border: 0; border-right: 1px solid #c9c3ba; background: #f7f5f0; padding: 12px; color: var(--pp-charcoal); font: inherit; text-align: left; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.tab:last-child,.tabActive:last-child { border-right: 0; }
+.tab span,.tabActive span { font-size: .69rem; font-weight: 900; letter-spacing: .06em; line-height: 1.25; }
+.tab strong,.tabActive strong { min-width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--pp-charcoal); background: #fff; }
+.tabActive { background: var(--pp-charcoal); color: #fff; }
+.tabActive strong { color: var(--pp-charcoal); background: var(--pp-cyan); }
+.jobs { display: grid; }
+.jobRow { display: grid; grid-template-columns: minmax(220px,1.1fr) minmax(230px,1.1fr) minmax(210px,.9fr) auto; gap: 20px; padding: 20px; border-bottom: 1px solid #d5d0c7; align-items: center; }
+.jobRow:last-child { border-bottom: 0; }
+.jobRow:hover { background: #fcfbf7; }
+.reference { display: block; font-size: .68rem; font-weight: 950; letter-spacing: .1em; color: var(--pp-cyan-deep); }
+.jobIdentity h2 { margin: 5px 0 6px; font-size: 1.15rem; line-height: 1.2; }
+.jobIdentity h2 small { font-size: .84rem; font-weight: 650; color: var(--pp-muted); }
+.jobIdentity p,.jobOperational p,.jobFacts span,.jobFacts small { margin: 0; font-size: .82rem; line-height: 1.45; color: var(--pp-muted); }
+.jobOperational { display: grid; gap: 5px; }
+.jobOperational strong { line-height: 1.3; }
+.status { justify-self: start; padding: 5px 7px; border: 1px solid var(--pp-cyan-deep); background: #effbff; font-size: .67rem; font-weight: 950; text-transform: uppercase; }
+.blocker { color: #a80051 !important; font-weight: 800; }
+.jobFacts { display: grid; gap: 5px; }
+.state { margin: 20px; padding: 22px; border: 1px dashed #aaa49b; color: var(--pp-muted); }
+.error { margin: 14px 0; padding: 14px 16px; border-left: 6px solid var(--pp-magenta); background: #fff2f8; font-weight: 750; }
+.createForm { margin: 20px; padding: clamp(18px,3vw,30px); border: 2px solid var(--pp-charcoal); background: #fffdf7; }
+.formHeading { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+.formHeading span { font-size: .68rem; font-weight: 950; letter-spacing: .08em; color: var(--pp-cyan-deep); }
+.formHeading h2 { margin: 4px 0 0; font-size: clamp(1.8rem,3vw,2.8rem); }
+.formHeading p { max-width: 43ch; margin: 0; color: var(--pp-muted); line-height: 1.5; }
+.formGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.createForm label { display: grid; gap: 6px; font-size: .78rem; font-weight: 850; }
+.createForm input,.createForm select,.createForm textarea { width: 100%; min-height: 46px; border: 1.5px solid #918b82; background: #fff; padding: 10px 11px; color: var(--pp-charcoal); font: inherit; }
+.createForm textarea { resize: vertical; }
+.placementFieldset { margin: 18px 0; border: 1.5px solid #918b82; padding: 14px; }
+.placementFieldset legend { padding: 0 6px; font-size: .78rem; font-weight: 900; }
+.placementFieldset > div { display: flex; flex-wrap: wrap; gap: 8px 15px; }
+.placementFieldset label,.checkboxLabel { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 7px !important; }
+.placementFieldset input,.checkboxLabel input { width: 18px; min-height: 18px; height: 18px; }
+.formNote { max-width: 80ch; padding: 12px 0; color: var(--pp-muted); font-size: .82rem; line-height: 1.5; }
+
+@media (max-width: 1040px) { .jobRow { grid-template-columns: 1fr 1fr; } .openButton { justify-self: start; } .viewTabs { grid-template-columns: repeat(2,1fr); } .tab,.tabActive { border-bottom: 1px solid #c9c3ba; } }
+@media (max-width: 700px) { .heroRow,.formHeading { flex-direction: column; } .heroRow .addButton { width: 100%; } .jobRow,.formGrid { grid-template-columns: 1fr; } .viewTabs { grid-template-columns: 1fr; } .tab,.tabActive { min-height: 54px; border-right: 0; } .createForm { margin: 12px; } }
+@media (prefers-reduced-motion: reduce) { .addButton,.openButton,.tab,.tabActive { transition: none; } }

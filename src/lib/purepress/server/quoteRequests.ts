@@ -110,9 +110,7 @@ export async function createPublicQuoteRequest(
     }
 
     transaction.set(quoteRef, quote);
-    for (const fileRef of fileRefs) {
-      transaction.update(fileRef, { quoteRequestId: quote.id });
-    }
+    for (const fileRef of fileRefs) transaction.update(fileRef, { quoteRequestId: quote.id });
     transaction.update(sessionRef, {
       state: "consumed",
       consumedAt: quote.createdAt,
@@ -129,13 +127,15 @@ export async function listOwnerQuoteRequests(limit = 40) {
   const snapshot = await getAdminDb()
     .collection(QUOTE_REQUESTS_COLLECTION)
     .orderBy("createdAt", "desc")
-    .limit(boundedLimit)
+    .limit(Math.min(100, boundedLimit * 2))
     .get();
 
-  return snapshot.docs.map((doc) => {
-    const data = doc.data() as QuoteRequest;
-    return {
-      id: doc.id,
+  return snapshot.docs
+    .map((doc) => ({ id: doc.id, data: doc.data() as QuoteRequest }))
+    .filter(({ data }) => !data.internal?.assignedProjectId)
+    .slice(0, boundedLimit)
+    .map(({ id, data }) => ({
+      id,
       referenceCode: data.referenceCode,
       status: data.status,
       createdAt: data.createdAt,
@@ -148,8 +148,8 @@ export async function listOwnerQuoteRequests(limit = 40) {
       requestedDate: data.customerVisible?.requestedDate ?? null,
       timingFlexible: data.customerVisible?.timingFlexible === true,
       artworkAttached: Boolean(data.customerVisible?.artworkFileIds?.length),
-    };
-  });
+      assignedProjectId: null,
+    }));
 }
 
 export async function getOwnerQuoteRequest(id: string) {

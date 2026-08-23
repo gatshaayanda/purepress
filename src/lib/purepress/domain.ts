@@ -53,7 +53,7 @@ export type FulfillmentIntent =
 
 export interface CustomerVisibleProfile {
   displayName: string;
-  email: string;
+  email?: string;
   phone?: string;
   companyName?: string;
 }
@@ -67,7 +67,7 @@ export interface CustomerInternalProfile {
 /** Server/admin record. Never expose this object directly to a customer client. */
 export interface Customer {
   id: string;
-  firebaseUid: string;
+  firebaseUid?: string;
   customerVisible: CustomerVisibleProfile;
   internal: CustomerInternalProfile;
   createdAt: IsoDateString;
@@ -80,6 +80,7 @@ export interface QuotePlacement {
 }
 
 export interface QuoteRequestContact extends CustomerVisibleProfile {
+  email: string;
   preferredContactMethod: PreferredContactMethod;
 }
 
@@ -111,6 +112,7 @@ export interface QuoteRequestCustomerVisible {
 export interface QuoteRequestInternal {
   triageNotes?: string;
   assignedProjectId?: string;
+  convertedAt?: IsoDateString;
   nextAction?: OperationalNextAction;
 }
 
@@ -127,15 +129,27 @@ export interface QuoteRequest {
   updatedAt: IsoDateString;
 }
 
+export type PurePressJobSource = "quote_request" | "owner_created" | "legacy";
+
 export interface EmbroideryJobCustomerVisible {
   title: string;
   garmentSummary?: string;
+  itemCategory?: QuoteItemCategory;
+  customItemDescription?: string;
   quantity?: number;
+  sizeBreakdown?: string;
+  itemColours?: string[];
+  placements?: QuotePlacement[];
+  requestedDate?: IsoDateString;
+  timingFlexible?: boolean;
+  fulfillmentIntent?: FulfillmentIntent;
   nextStep?: string;
   customerNotes?: string;
 }
 
 export interface EmbroideryJobInternal {
+  source: PurePressJobSource;
+  ownerNotes?: string;
   adminNotes?: string;
   productionInstructions?: string;
   qualityNotes?: string;
@@ -143,20 +157,23 @@ export interface EmbroideryJobInternal {
   nextAction?: OperationalNextAction;
   receiving?: SupplyReceivingFact[];
   embroidery?: EmbroideryProductionSpecification;
+  sourceArtworkFileIds?: string[];
+  sourceQuoteReference?: string;
+  convertedAt?: IsoDateString;
 }
 
 /**
- * Canonical PurePress order model. During transition `projectId` continues to
- * point at the inherited `projects` compatibility root. A converted job can
- * preserve its source request and later reorder provenance without re-entry.
+ * Canonical PurePress operational order model. `projectId` is the inherited
+ * `projects` compatibility root and remains the mutable source of truth.
  */
 export interface EmbroideryJob {
   id: string;
   projectId: string;
+  referenceCode: string;
   sourceQuoteRequestId?: string;
   reorderSourceOrderId?: string;
   customerId: string;
-  customerUid: string;
+  customerUid?: string;
   supplySource?: SupplySource;
   status: PurePressOrderStatus;
   customerVisible: EmbroideryJobCustomerVisible;
