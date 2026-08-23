@@ -28,6 +28,8 @@ const visiblePurePressSurfaces = [
   "src/components/purepress/PurePressHeader.tsx",
   "src/components/purepress/PurePressFooter.tsx",
   "src/components/purepress/PurePressStudioPrimer.tsx",
+  "src/components/purepress/PurePressQuoteIntake.tsx",
+  "src/components/purepress/PurePressQuoteRequests.tsx",
 ].map((file) => [file, read(file)]);
 
 const forbiddenVisibleLanguage = [
@@ -167,23 +169,23 @@ test("gallery publication boundary remains strict while visitor copy stays busin
   assert.doesNotMatch(gallery, /owner-approved|stock or invented|private customer/i);
 });
 
-test("quote entry is conversational and asks for artwork without technical explanation", () => {
-  const source = read("src/app/request-a-quote/page.tsx");
+test("quote entry is conversational, progressive and supports secure artwork intake", () => {
+  const page = read("src/app/request-a-quote/page.tsx");
+  const intake = read("src/components/purepress/PurePressQuoteIntake.tsx");
+  assert.match(page, /PurePressQuoteIntake/);
   for (const phrase of [
     "What are we branding?",
     "How many?",
     "Where should the embroidery go?",
-    "Do you already have a logo?",
+    "Do you have artwork?",
     "When do you need it?",
     "How should we reach you?",
   ]) {
-    assert.match(source, new RegExp(phrase.replace(/[?]/g, "\\?")));
+    assert.match(intake, new RegExp(phrase.replace(/[?]/g, "\\?")));
   }
-  assert.match(
-    source,
-    /Have your logo or artwork ready if you already have it\.[\s\S]*ask for it securely when we prepare your quotation/,
-  );
-  assert.doesNotMatch(source, /upload path|customer-file upload|Patch C/i);
+  assert.match(page, /request a quote without creating an account/i);
+  assert.match(intake, /uploadFiles\("purePressQuoteArtwork"/);
+  assert.doesNotMatch(page, /upload path|customer-file upload|Patch C/i);
 });
 
 test("customer identity is My PurePress with secure email-link sign-in copy", () => {

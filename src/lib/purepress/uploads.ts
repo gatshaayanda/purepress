@@ -17,12 +17,15 @@ const MB = 1024 * 1024;
 const IMAGE_MIMES = ["image/jpeg", "image/png", "image/webp"] as const;
 const PDF_MIME = "application/pdf";
 
+export const QUOTE_ARTWORK_MAX_FILES = 3;
+export const QUOTE_ARTWORK_MAX_BYTES = 8 * MB;
+
 export const PUREPRESS_UPLOAD_POLICIES: Record<JobFileCategory, PurePressUploadPolicy> = {
   quote_artwork: {
     category: "quote_artwork",
-    maxBytes: 16 * MB,
-    extensions: [".jpg", ".jpeg", ".png", ".webp", ".pdf", ".ai", ".eps"],
-    mimeTypes: [...IMAGE_MIMES, PDF_MIME, "application/postscript", "application/octet-stream"],
+    maxBytes: QUOTE_ARTWORK_MAX_BYTES,
+    extensions: [".jpg", ".jpeg", ".png", ".webp", ".pdf"],
+    mimeTypes: [...IMAGE_MIMES, PDF_MIME],
     roles: ["customer", "admin"],
     requiresJob: false,
     customerVisibleByDefault: true,
@@ -96,7 +99,7 @@ export function isPurePressUploadCategory(value: string): value is JobFileCatego
 
 export function validatePurePressUploadCandidate(
   category: JobFileCategory,
-  file: { name: string; type?: string | null; size: number }
+  file: { name: string; type?: string | null; size: number },
 ) {
   const policy = PUREPRESS_UPLOAD_POLICIES[category];
   if (file.size <= 0 || file.size > policy.maxBytes) {

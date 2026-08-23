@@ -1,8 +1,55 @@
 import type { PurePressOrderStatus } from "./orderStatus";
+import type {
+  EmbroideryProductionSpecification,
+  JobReadiness,
+  OperationalNextAction,
+  SupplyReceivingFact,
+} from "./readiness";
 
 export type IsoDateString = string;
 export type PurePressActorType = "customer" | "admin" | "system";
 export type PurePressVisibility = "customer" | "internal";
+
+export type SupplySource =
+  | "customer_supplied"
+  | "purepress_supplied"
+  | "mixed"
+  | "unknown";
+
+export type QuoteItemCategory =
+  | "corporate_uniforms"
+  | "school_items"
+  | "team_wear"
+  | "shirts_polos"
+  | "jackets_workwear"
+  | "bags"
+  | "towels"
+  | "leather"
+  | "gifts_promotional"
+  | "custom";
+
+export type QuotePlacementPosition =
+  | "left_chest"
+  | "right_chest"
+  | "sleeve"
+  | "back"
+  | "badge_position"
+  | "pocket"
+  | "bag_towel_position"
+  | "other";
+
+export type QuoteArtworkState =
+  | "artwork_ready"
+  | "artwork_needs_work"
+  | "needs_design_help"
+  | "unsure";
+
+export type PreferredContactMethod = "email" | "phone" | "whatsapp";
+
+export type FulfillmentIntent =
+  | "collect"
+  | "delivery_may_be_needed"
+  | "unsure";
 
 export interface CustomerVisibleProfile {
   displayName: string;
@@ -27,11 +74,36 @@ export interface Customer {
   updatedAt: IsoDateString;
 }
 
+export interface QuotePlacement {
+  position: QuotePlacementPosition;
+  notes?: string;
+}
+
+export interface QuoteRequestContact extends CustomerVisibleProfile {
+  preferredContactMethod: PreferredContactMethod;
+}
+
 export interface QuoteRequestCustomerVisible {
-  contact: CustomerVisibleProfile;
-  garmentType?: string;
+  contact: QuoteRequestContact;
+  organisation?: string;
+  itemCategory?: QuoteItemCategory;
+  customItemDescription?: string;
+  supplySource?: SupplySource;
   quantity?: number;
-  requestDetails: string;
+  sizeBreakdown?: string;
+  itemColours?: string[];
+  placements?: QuotePlacement[];
+  artworkState?: QuoteArtworkState;
+  artworkFileIds?: string[];
+  requestedDate?: IsoDateString;
+  timingFlexible?: boolean;
+  fulfillmentIntent?: FulfillmentIntent;
+  customerNotes?: string;
+  processingAcknowledgedAt?: IsoDateString;
+
+  /** Patch A compatibility fields retained while intake moves to the richer shape. */
+  garmentType?: string;
+  requestDetails?: string;
   artworkNotes?: string;
   deadlineNotes?: string;
 }
@@ -39,13 +111,16 @@ export interface QuoteRequestCustomerVisible {
 export interface QuoteRequestInternal {
   triageNotes?: string;
   assignedProjectId?: string;
+  nextAction?: OperationalNextAction;
 }
 
 /** Raw quote request is admin/server data; customer status is projected separately. */
 export interface QuoteRequest {
   id: string;
+  referenceCode: string;
   customerUid?: string;
   status: PurePressOrderStatus;
+  source: "public_quote_form" | "owner_created" | "legacy";
   customerVisible: QuoteRequestCustomerVisible;
   internal: QuoteRequestInternal;
   createdAt: IsoDateString;
@@ -64,17 +139,25 @@ export interface EmbroideryJobInternal {
   adminNotes?: string;
   productionInstructions?: string;
   qualityNotes?: string;
+  readiness?: JobReadiness;
+  nextAction?: OperationalNextAction;
+  receiving?: SupplyReceivingFact[];
+  embroidery?: EmbroideryProductionSpecification;
 }
 
 /**
- * Canonical PurePress order model. During the first iteration `projectId`
- * points at the inherited `projects` document used as the compatibility root.
+ * Canonical PurePress order model. During transition `projectId` continues to
+ * point at the inherited `projects` compatibility root. A converted job can
+ * preserve its source request and later reorder provenance without re-entry.
  */
 export interface EmbroideryJob {
   id: string;
   projectId: string;
+  sourceQuoteRequestId?: string;
+  reorderSourceOrderId?: string;
   customerId: string;
   customerUid: string;
+  supplySource?: SupplySource;
   status: PurePressOrderStatus;
   customerVisible: EmbroideryJobCustomerVisible;
   internal: EmbroideryJobInternal;
@@ -97,6 +180,8 @@ export interface JobFile {
   id: string;
   projectId?: string;
   orderId?: string;
+  quoteRequestId?: string;
+  quoteIntakeSessionId?: string;
   category: JobFileCategory;
   fileKey: string;
   fileName: string;
@@ -145,6 +230,13 @@ export interface OrderMessage {
   createdAt: IsoDateString;
 }
 
+export interface MarketingMediaPermission {
+  grantedByUid?: string;
+  grantedAt: IsoDateString;
+  scope: string;
+  withdrawnAt?: IsoDateString;
+}
+
 /** Public media is a deliberate projection, never the upload record itself. */
 export interface PublicWorkMedia {
   id: string;
@@ -155,6 +247,7 @@ export interface PublicWorkMedia {
   caption?: string;
   safePublic: boolean;
   published: boolean;
+  permission?: MarketingMediaPermission;
   publishedAt?: IsoDateString;
   publishedByUid?: string;
 }

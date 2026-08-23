@@ -8,6 +8,10 @@ import {
 } from "@/lib/boardsignal/server/chatAttachments";
 import { authorizePurePressUpload } from "@/lib/purepress/server/uploadAuthorization";
 import {
+  authorizeQuoteArtworkUpload,
+  recordQuoteArtworkUpload,
+} from "@/lib/purepress/server/quoteIntakeSessions";
+import {
   isPurePressUploadCategory,
   validatePurePressUploadCandidate,
 } from "@/lib/purepress/uploads";
@@ -23,6 +27,40 @@ export const ourFileRouter = {
   }).onUploadComplete(async ({ file }) => {
     console.log("✅ Uploaded file:", file);
   }),
+
+  purePressQuoteArtwork: f({
+    image: { maxFileSize: "8MB", maxFileCount: 1, acl: "private" },
+    pdf: { maxFileSize: "8MB", maxFileCount: 1, acl: "private" },
+  }, { awaitServerData: true })
+    .middleware(async ({ req, files }) => {
+      try {
+        if (files.length !== 1) throw new Error("PurePress accepts one quote artwork file per upload request.");
+        const candidate = files[0];
+        validatePurePressUploadCandidate("quote_artwork", {
+          name: candidate.name,
+          type: candidate.type,
+          size: candidate.size,
+        });
+        const authorization = await authorizeQuoteArtworkUpload(req);
+        return {
+          intakeId: authorization.intakeId,
+          scope: authorization.scope,
+          expiresAt: authorization.expiresAt,
+          originalName: candidate.name,
+          mimeType: candidate.type,
+          sizeBytes: candidate.size,
+        };
+      } catch (reason) {
+        throw new UploadThingError(reason instanceof Error ? reason.message : "Quote artwork upload is not authorized.");
+      }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      const receipt = await recordQuoteArtworkUpload(
+        { intakeId: metadata.intakeId, scope: "quote_artwork", expiresAt: metadata.expiresAt },
+        { key: file.key, name: metadata.originalName, type: metadata.mimeType, size: metadata.sizeBytes },
+      );
+      return receipt;
+    }),
 
   purePressUpload: f({
     blob: { maxFileSize: "16MB", maxFileCount: 1 },

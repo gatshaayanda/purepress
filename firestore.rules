@@ -161,24 +161,7 @@ service cloud.firestore {
        Public create is intentionally narrow. Raw requests are admin-only.
        ======================================================== */
     match /purepressQuoteRequests/{requestId} {
-      allow create: if request.resource.data.keys().hasOnly([
-          'name', 'email', 'phone', 'companyName', 'garmentType', 'quantity',
-          'requestDetails', 'artworkNotes', 'deadlineNotes', 'source', 'status', 'createdAt'
-        ])
-        && isReasonableText(request.resource.data.name, 120)
-        && isValidEmail(request.resource.data.email)
-        && isReasonableText(request.resource.data.requestDetails, 5000)
-        && request.resource.data.status == 'new_request'
-        && request.resource.data.source == 'public'
-        && request.resource.data.createdAt is timestamp
-        && isOptionalString('phone')
-        && isOptionalString('companyName')
-        && isOptionalString('garmentType')
-        && isOptionalNumber('quantity')
-        && isOptionalString('artworkNotes')
-        && isOptionalString('deadlineNotes');
-
-      allow read, update, delete: if isPurePressAdmin();
+      allow read, create, update, delete: if isPurePressAdmin();
     }
 
     /* ========================================================
