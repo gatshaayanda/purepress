@@ -63,9 +63,9 @@ test("conversion cannot publish or reclassify private quote artwork", () => {
 test("Patch C raw quote security remains intact when firestore rules are present", () => {
   const rules = maybeRead("firestore.rules");
   if (!rules) return;
-  const start = rules.indexOf("match /purepressQuoteRequests/{requestId}");
-  assert.ok(start >= 0);
-  const block = rules.slice(start, rules.indexOf("}", start) + 1);
+  const match = rules.match(/match \/purepressQuoteRequests\/\{requestId\}\s*\{[\s\S]*?\n\s*\}/);
+  assert.ok(match, "purepressQuoteRequests rule block was not found");
+  const block = match[0];
   assert.match(block, /allow read, create, update, delete: if isPurePressAdmin\(\);/);
   assert.doesNotMatch(block, /request\.auth == null|isUnsignedClient/);
 });
