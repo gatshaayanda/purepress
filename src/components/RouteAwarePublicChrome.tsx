@@ -9,13 +9,34 @@ import AskBoardSignal from "@/components/AskBoardSignal";
 import InstallPrompt from "@/components/InstallPrompt";
 import PwaLaunchRedirect from "@/components/PwaLaunchRedirect";
 import BoardSignalSituationalMotion from "@/components/BoardSignalSituationalMotion";
+import PurePressHeader from "@/components/purepress/PurePressHeader";
+import PurePressFooter from "@/components/purepress/PurePressFooter";
 import { isStandalonePublicRoute } from "@/lib/standalonePublicRoutes";
+import {
+  isPurePressInternalRoute,
+  isPurePressPublicRoute,
+} from "@/lib/purepress/publicRoutes";
 
-export default function RouteAwarePublicChrome({ children }: { children: ReactNode }) {
+export default function RouteAwarePublicChrome({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const pathname = usePathname();
-  const standalone = isStandalonePublicRoute(pathname);
 
-  if (standalone) return <>{children}</>;
+  if (isStandalonePublicRoute(pathname) || isPurePressInternalRoute(pathname)) {
+    return <>{children}</>;
+  }
+
+  if (isPurePressPublicRoute(pathname)) {
+    return (
+      <div className="pp-site">
+        <PurePressHeader />
+        <main id="main">{children}</main>
+        <PurePressFooter />
+      </div>
+    );
+  }
 
   return (
     <>

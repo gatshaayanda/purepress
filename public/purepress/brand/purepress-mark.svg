@@ -1,0 +1,9 @@
+<svg width="180" height="150" viewBox="0 0 180 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>PurePress Printers mark</title>
+  <circle cx="59" cy="42" r="30" fill="#EC168C"/>
+  <circle cx="49" cy="82" r="24" fill="#FFE500"/>
+  <circle cx="98" cy="62" r="31" fill="#00AEEF"/>
+  <path d="M78 37H99C117 37 129 47 129 62C129 77 117 87 99 87H88V103H78V37Z" fill="#FFFFFF"/>
+  <circle cx="99" cy="62" r="7" fill="#00AEEF"/>
+  <rect x="82" y="86" width="5" height="48" rx="2.5" fill="#EC168C"/>
+</svg>

@@ -4,15 +4,93 @@ export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
 export default function Icon() {
-  const squares = Array.from({ length: 16 });
   return new ImageResponse(
-    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#f4f0e7" }}>
-      <div style={{ width: 392, height: 392, padding: 54, display: "flex", flexWrap: "wrap", background: "#3157ff", borderRadius: 92, position: "relative" }}>
-        {squares.map((_, index) => <div key={index} style={{ width: "25%", height: "25%", background: (index + Math.floor(index / 4)) % 2 === 0 ? "#101923" : "#f4f0e7" }} />)}
-        <div style={{ position: "absolute", left: 104, top: 212, width: 210, height: 42, borderLeft: "24px solid #c9f65d", borderBottom: "24px solid #c9f65d", transform: "rotate(-45deg)" }} />
-      </div>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        position: "relative",
+        background: "#FFFFFF",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          left: 110,
+          top: 105,
+          width: 144,
+          height: 144,
+          borderRadius: "50%",
+          background: "#EC168C",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 100,
+          top: 215,
+          width: 116,
+          height: 116,
+          borderRadius: "50%",
+          background: "#FFE500",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 201,
+          top: 150,
+          width: 149,
+          height: 149,
+          borderRadius: "50%",
+          background: "#00AEEF",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 227,
+          top: 165,
+          width: 123,
+          height: 120,
+          borderRadius: "0 60px 60px 0",
+          background: "#FFFFFF",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 227,
+          top: 165,
+          width: 24,
+          height: 160,
+          background: "#FFFFFF",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 261,
+          top: 208,
+          width: 34,
+          height: 34,
+          borderRadius: "50%",
+          background: "#00AEEF",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 237,
+          top: 282,
+          width: 12,
+          height: 116,
+          borderRadius: 6,
+          background: "#EC168C",
+        }}
+      />
     </div>,
-    { ...size }
+    size,
   );
 }
-

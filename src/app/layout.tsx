@@ -6,6 +6,7 @@ import "./boardsignal-accessibility.css";
 import "./boardsignal-motion.css";
 import "./boardsignal-player-room-g3.css";
 import "./boardsignal-f2-readability.css";
+import "./purepress-studio.css";
 
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
@@ -28,20 +29,75 @@ const inter = Inter({
   display: "swap",
 });
 
+function resolveMetadataBase() {
+  const configuredOrigin =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : undefined);
+
+  if (!configuredOrigin) return undefined;
+
+  try {
+    return new URL(configuredOrigin);
+  } catch {
+    return undefined;
+  }
+}
+
 export const metadata: Metadata = {
+  metadataBase: resolveMetadataBase(),
   title: {
-    default: "BoardSignal — Your weekly chess Review",
-    template: "%s | BoardSignal",
+    default: "PurePress Printers — Your Vision, Fully Printed",
+    template: "%s | PurePress Printers",
   },
-  description: "BoardSignal turns a fixed seven days of your Chess.com games into a factual Review, a clear signal and a plan you can use.",
-  applicationName: "BoardSignal",
-  keywords: ["chess improvement", "Chess.com analysis", "weekly chess report", "chess insights", "BoardSignal"],
+  description:
+    "Computerized embroidery and garment branding in Gaborone, Botswana for companies, schools, sports teams, clothing brands and organisations.",
+  applicationName: "PurePress Printers",
+  keywords: [
+    "embroidery Botswana",
+    "computerized embroidery Gaborone",
+    "garment branding",
+    "corporate uniform embroidery",
+    "school badges",
+    "sportswear embroidery",
+  ],
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      {
+        url: "/purepress/brand/purepress-mark.svg",
+        type: "image/svg+xml",
+      },
+      {
+        url: "/purepress/brand/purepress-app-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+    ],
+  },
   openGraph: {
-    title: "BoardSignal — Your games, covered like sport",
-    description: "Personal sports coverage and private performance guidance for everyday chess players.",
-    siteName: "BoardSignal",
+    title: "PurePress Printers — Your Vision, Fully Printed",
+    description:
+      "Computerized embroidery and garment branding from Gaborone, Botswana.",
+    siteName: "PurePress Printers",
     type: "website",
+    images: [
+      {
+        url: "/purepress/brand/purepress-app-512.png",
+        width: 512,
+        height: 512,
+        alt: "PurePress Printers mark",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "PurePress Printers",
+    description: "Your Vision, Fully Printed",
+    images: ["/purepress/brand/purepress-app-512.png"],
   },
 };
 
@@ -49,10 +105,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f0e7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
-  ],
+  themeColor: "#00AEEF",
 };
 
 const boardSignalThemeBootstrap = `(() => {
@@ -60,20 +113,32 @@ const boardSignalThemeBootstrap = `(() => {
   let choice = "system";
   try {
     const stored = window.localStorage.getItem(key);
-    if (stored === "light" || stored === "dark" || stored === "system") choice = stored;
+    if (stored === "light" || stored === "dark" || stored === "system") {
+      choice = stored;
+    }
   } catch {}
-  const dark = choice === "dark" || (choice === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  const dark =
+    choice === "dark" ||
+    (choice === "system" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
   const root = document.documentElement;
   root.dataset.bsTheme = dark ? "dark" : "light";
   root.dataset.bsThemeChoice = choice;
   root.style.colorScheme = dark ? "dark" : "light";
 })();`;
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${montserrat.variable} ${inter.variable}`}
+      suppressHydrationWarning
+    >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: boardSignalThemeBootstrap }} />
+        <script
+          dangerouslySetInnerHTML={{ __html: boardSignalThemeBootstrap }}
+        />
       </head>
       <body suppressHydrationWarning>
         <AnalyticsProvider>

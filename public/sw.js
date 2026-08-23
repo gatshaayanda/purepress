@@ -23,26 +23,33 @@ self.addEventListener("install", (event) => {
   event.waitUntil(precacheSafeShell());
 });
 
-
 async function precacheSafeShell() {
   const shellCache = await caches.open(SHELL_CACHE);
   const staticCache = await caches.open(STATIC_CACHE);
   const discovered = new Set();
+
   for (const path of APP_SHELL) {
     const request = new Request(path, { cache: "reload" });
     const response = await fetch(request);
     if (!response.ok) throw new Error(`BoardSignal shell could not cache ${path}`);
+
     await shellCache.put(request, response.clone());
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("text/html")) continue;
+
     const html = await response.text();
-    for (const match of html.matchAll(/(?:src|href)=["'](\/_next\/static\/[^"']+)["']/g)) discovered.add(match[1]);
+    for (const match of html.matchAll(/(?:src|href)=["'](\/_next\/static\/[^"']+)["']/g)) {
+      discovered.add(match[1]);
+    }
   }
-  await Promise.all([...discovered].map(async (path) => {
-    const request = new Request(path, { cache: "reload" });
-    const response = await fetch(request);
-    if (response.ok) await staticCache.put(request, response);
-  }));
+
+  await Promise.all(
+    [...discovered].map(async (path) => {
+      const request = new Request(path, { cache: "reload" });
+      const response = await fetch(request);
+      if (response.ok) await staticCache.put(request, response);
+    }),
+  );
   await trimCache(STATIC_CACHE, 80);
 }
 
@@ -51,13 +58,21 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys
-      .filter((key) => key.startsWith(BOARDSIGNAL_CACHE_PREFIX) && !ACTIVE_CACHES.has(key))
-      .map((key) => caches.delete(key)));
-    await self.clients.claim();
-  })());
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter(
+            (key) =>
+              key.startsWith(BOARDSIGNAL_CACHE_PREFIX) &&
+              !ACTIVE_CACHES.has(key),
+          )
+          .map((key) => caches.delete(key)),
+      );
+      await self.clients.claim();
+    })(),
+  );
 });
 
 self.addEventListener("fetch", (event) => {
@@ -68,28 +83,42 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   // APIs are network-only. Cache Storage never receives authenticated/private
-  // BoardSignal payloads or the connectivity probe.
+  // payloads or the connectivity probe.
   if (url.pathname.startsWith("/api/")) return;
 
-  const isNavigation = request.mode === "navigate" || request.headers.get("accept")?.includes("text/html");
+  const isNavigation =
+    request.mode === "navigate" ||
+    request.headers.get("accept")?.includes("text/html");
 
   if (isNavigation && url.pathname.startsWith("/boardsignal/player-room")) {
-    event.respondWith(fetch(request).catch(() => caches.match("/offline/player-room").then((response) => response || caches.match("/offline"))));
+    event.respondWith(
+      fetch(request).catch(() =>
+        caches
+          .match("/offline/player-room")
+          .then((response) => response || caches.match("/offline")),
+      ),
+    );
     return;
   }
 
-  // Auth/admin/legacy private surfaces are never persisted by this worker.
+  // Authenticated/admin/application surfaces are never persisted by this worker.
   if (
     url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/client") ||
     url.pathname.startsWith("/app") ||
     url.pathname.startsWith("/connect")
   ) {
-    if (isNavigation) event.respondWith(fetch(request).catch(() => caches.match("/offline")));
+    if (isNavigation) {
+      event.respondWith(fetch(request).catch(() => caches.match("/offline")));
+    }
     return;
   }
 
   // Public player pages can later change privacy state; keep them network-only.
-  if (isNavigation && (url.pathname.startsWith("/player/") || url.pathname.startsWith("/share/"))) {
+  if (
+    isNavigation &&
+    (url.pathname.startsWith("/player/") || url.pathname.startsWith("/share/"))
+  ) {
     event.respondWith(fetch(request).catch(() => caches.match("/offline")));
     return;
   }
@@ -116,8 +145,8 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (isNavigation) {
-    // Universe/public HTML is time-sensitive: always try network first, with a
-    // bounded safe public fallback when the network is unavailable.
+    // Public HTML is time-sensitive: always try network first, with a bounded
+    // safe public fallback when the network is unavailable.
     event.respondWith(networkFirstPublic(request));
   }
 });
@@ -126,6 +155,7 @@ async function cacheFirst(request, cacheName, maxEntries) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
+
   const response = await fetch(request);
   if (response.ok) {
     await cache.put(request, response.clone());
@@ -154,7 +184,12 @@ async function trimCache(cacheName, maxEntries) {
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
   if (keys.length <= maxEntries) return;
-  await Promise.all(keys.slice(0, keys.length - maxEntries).map((request) => cache.delete(request)));
+
+  await Promise.all(
+    keys
+      .slice(0, keys.length - maxEntries)
+      .map((request) => cache.delete(request)),
+  );
 }
 
 // Existing BoardSignal browser push behavior is intentionally preserved in the
@@ -164,31 +199,49 @@ self.addEventListener("push", (event) => {
   try {
     payload = event.data ? event.data.json() : {};
   } catch {
-    payload = { notification: { title: "BoardSignal", body: "You have a new private Player Room update." } };
+    payload = {
+      notification: {
+        title: "BoardSignal",
+        body: "You have a new private Player Room update.",
+      },
+    };
   }
+
   const notification = payload.notification || {};
   const data = payload.data || {};
   const title = notification.title || "BoardSignal";
-  const body = notification.body || "You have a new private Player Room update.";
-  event.waitUntil(self.registration.showNotification(title, {
-    body,
-    icon: "/icons/boardsignal-192.png",
-    badge: "/icons/boardsignal-192.png",
-    data: { link: data.link || "/boardsignal/player-room" },
-    tag: data.type ? `boardsignal-${data.type}` : undefined,
-  }));
+  const body =
+    notification.body || "You have a new private Player Room update.";
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: "/icons/boardsignal-192.png",
+      badge: "/icons/boardsignal-192.png",
+      data: { link: data.link || "/boardsignal/player-room" },
+      tag: data.type ? `boardsignal-${data.type}` : undefined,
+    }),
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const link = event.notification.data?.link || "/boardsignal/player-room";
-  event.waitUntil((async () => {
-    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    const existing = windows.find((client) => new URL(client.url).origin === self.location.origin);
-    if (existing) {
-      await existing.navigate(link);
-      return existing.focus();
-    }
-    return self.clients.openWindow(link);
-  })());
+
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      const existing = windows.find(
+        (client) => new URL(client.url).origin === self.location.origin,
+      );
+      if (existing) {
+        await existing.navigate(link);
+        return existing.focus();
+      }
+      return self.clients.openWindow(link);
+    })(),
+  );
 });

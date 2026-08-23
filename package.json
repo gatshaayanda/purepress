@@ -1,11 +1,11 @@
 {
-  "name": "boardsignal-v10",
+  "name": "purepress",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "prepare:stockfish": "node scripts/prepare-stockfish.mjs",
     "postinstall": "npm run prepare:stockfish",
-    "prebuild": "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:critical && npm run test:pwa",
+    "prebuild": "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:purepress-brand && npm run test:critical && npm run test:pwa",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -24,7 +24,8 @@
     "test:activation": "tsc -p tsconfig.activation-bridge.json && node --test tests/boardsignal-activation-bridge.test.cjs",
     "test:legacy-beta-access": "node --test tests/boardsignal-legacy-beta-access-compat.test.cjs",
     "test:preview-return": "tsc -p tsconfig.preview-return.json && node --test tests/boardsignal-preview-return-device-access.test.cjs",
-    "test:purepress": "node --test tests/purepress-security-domain-foundation.test.cjs"
+    "test:purepress": "node --test tests/purepress-security-domain-foundation.test.cjs",
+    "test:purepress-brand": "node --test tests/purepress-brand-public-website.test.cjs"
   },
   "dependencies": {
     "@uploadthing/react": "^7.3.3",

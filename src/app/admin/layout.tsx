@@ -3,11 +3,16 @@ import FounderDeviceMarker from "@/components/FounderDeviceMarker";
 import PurePressAdminFirebaseGate from "@/components/PurePressAdminFirebaseGate";
 
 export const metadata: Metadata = {
-  title: "Founder Newsroom",
+  title: "PurePress Studio",
+  description: "PurePress production and customer-work operations",
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <>
       <FounderDeviceMarker />
