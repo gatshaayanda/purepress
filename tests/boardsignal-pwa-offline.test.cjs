@@ -381,7 +381,7 @@ test("offline page and standalone CSS retain readable native-feeling UX", () => 
 test("PurePress build gate runs inherited and PurePress regressions without adding PWA dependencies", () => {
   assert.equal(
     pkg.scripts.prebuild,
-    "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:purepress-brand && npm run test:critical && npm run test:pwa",
+    "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:purepress-brand && npm run test:purepress-patch-c && npm run test:purepress-patch-d && npm run test:critical && npm run test:pwa",
   );
   assert.ok(pkg.scripts["test:pwa"]);
   assert.match(pkg.scripts.prebuild, /test:purepress/);
