@@ -379,15 +379,24 @@ test("offline page and standalone CSS retain readable native-feeling UX", () => 
 });
 
 test("PurePress build gate runs inherited and PurePress regressions without adding PWA dependencies", () => {
-  assert.equal(
-    pkg.scripts.prebuild,
-    "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:purepress-brand && npm run test:purepress-patch-c && npm run test:purepress-patch-d && npm run test:critical && npm run test:pwa",
-  );
+  const requiredGates = [
+    "prepare:stockfish",
+    "test:contrast",
+    "test:purepress",
+    "test:purepress-brand",
+    "test:purepress-patch-c",
+    "test:purepress-patch-d",
+    "test:purepress-patch-e",
+    "test:critical",
+    "test:pwa",
+  ];
+  const positions = requiredGates.map((gate) => {
+    const position = pkg.scripts.prebuild.indexOf(`npm run ${gate}`);
+    assert.ok(position >= 0, `${gate} must remain in prebuild`);
+    return position;
+  });
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "required prebuild gates must retain their safety order");
   assert.ok(pkg.scripts["test:pwa"]);
-  assert.match(pkg.scripts.prebuild, /test:purepress/);
-  assert.match(pkg.scripts.prebuild, /test:purepress-brand/);
-  assert.match(pkg.scripts.prebuild, /test:critical/);
-  assert.match(pkg.scripts.prebuild, /test:pwa/);
   assert.equal(pkg.dependencies?.workbox, undefined);
   assert.equal(pkg.dependencies?.["next-pwa"], undefined);
 

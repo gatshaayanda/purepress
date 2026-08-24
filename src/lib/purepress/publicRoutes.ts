@@ -5,9 +5,11 @@ const PUREPRESS_PUBLIC_PREFIXES = [
   "/about",
   "/contact",
   "/request-a-quote",
+  "/quote",
 ] as const;
 
-const PUREPRESS_ADMIN_LOGIN_PREFIX = "/login-secret-login-for-admins97F4B2NXQ";
+const PUREPRESS_OWNER_LOGIN_PATH = "/admin/login";
+const LEGACY_OWNER_LOGIN_PATH = "/login-secret-login-for-admins97F4B2NXQ";
 
 export function isPurePressPublicRoute(pathname: string | null | undefined) {
   if (!pathname) return false;
@@ -31,6 +33,7 @@ export function isPurePressInternalRoute(pathname: string | null | undefined) {
     privateClientRoute ||
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||
-    pathname.startsWith(PUREPRESS_ADMIN_LOGIN_PREFIX)
+    pathname === PUREPRESS_OWNER_LOGIN_PATH ||
+    pathname === LEGACY_OWNER_LOGIN_PATH
   );
 }

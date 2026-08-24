@@ -5,9 +5,10 @@ import {
   verifyFounderAuthorization,
 } from "./src/lib/boardsignal/founderSession.mjs";
 
-const FOUNDER_LOGIN_PATH = "/login-secret-login-for-admins97F4B2NXQ";
+const PUREPRESS_OWNER_LOGIN_PATH = "/admin/login";
 
 function isFounderRoute(pathname: string) {
+  if (pathname === PUREPRESS_OWNER_LOGIN_PATH) return false;
   return pathname === "/admin"
     || pathname.startsWith("/admin/")
     || pathname.startsWith("/api/admin/boardsignal/")
@@ -42,9 +43,8 @@ export async function middleware(req: NextRequest) {
   }
 
   const loginUrl = req.nextUrl.clone();
-  loginUrl.pathname = FOUNDER_LOGIN_PATH;
+  loginUrl.pathname = PUREPRESS_OWNER_LOGIN_PATH;
   loginUrl.search = "";
-  loginUrl.searchParams.set("next", pathname);
   return NextResponse.redirect(loginUrl);
 }
 

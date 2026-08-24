@@ -15,6 +15,7 @@
 /.test-dist
 /.test-dist-purepress-c
 /.test-dist-purepress-d
+/.test-dist-purepress-e
 
 # next.js
 /.next/

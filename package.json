@@ -5,7 +5,7 @@
   "scripts": {
     "prepare:stockfish": "node scripts/prepare-stockfish.mjs",
     "postinstall": "npm run prepare:stockfish",
-    "prebuild": "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:purepress-brand && npm run test:purepress-patch-c && npm run test:purepress-patch-d && npm run test:critical && npm run test:pwa",
+    "prebuild": "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:purepress-brand && npm run test:purepress-patch-c && npm run test:purepress-patch-d && npm run test:purepress-patch-e && npm run test:critical && npm run test:pwa",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -27,7 +27,8 @@
     "test:purepress": "node --test tests/purepress-security-domain-foundation.test.cjs",
     "test:purepress-brand": "node --test tests/purepress-brand-public-website.test.cjs",
     "test:purepress-patch-c": "tsc -p tsconfig.purepress-patch-c.json && node --test tests/purepress-patch-c-validation.test.cjs tests/purepress-patch-c-architecture.test.cjs tests/purepress-patch-c-security-boundary.test.cjs",
-    "test:purepress-patch-d": "tsc -p tsconfig.purepress-patch-d.json && node --test tests/purepress-patch-d-validation.test.cjs tests/purepress-patch-d-architecture.test.cjs tests/purepress-patch-d-security.test.cjs"
+    "test:purepress-patch-d": "tsc -p tsconfig.purepress-patch-d.json && node --test tests/purepress-patch-d-validation.test.cjs tests/purepress-patch-d-architecture.test.cjs tests/purepress-patch-d-security.test.cjs",
+    "test:purepress-patch-e": "tsc -p tsconfig.purepress-patch-e.json && node --test tests/purepress-patch-e-validation.test.cjs tests/purepress-patch-e-architecture.test.cjs tests/purepress-patch-e-security.test.cjs tests/purepress-patch-e-pdf.test.cjs tests/purepress-patch-e-owner-entry.test.cjs"
   },
   "dependencies": {
     "@uploadthing/react": "^7.3.3",

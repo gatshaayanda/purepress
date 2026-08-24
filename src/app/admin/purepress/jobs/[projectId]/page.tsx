@@ -1,4 +1,5 @@
 import PurePressJobWorkspace from "@/components/purepress/PurePressJobWorkspace";
+import PurePressQuotationPanel from "@/components/purepress/PurePressQuotationPanel";
 
 export default async function PurePressJobPage({
   params,
@@ -10,6 +11,7 @@ export default async function PurePressJobPage({
     <main id="main" className="pp-admin-page">
       <div className="pp-admin-container">
         <PurePressJobWorkspace projectId={projectId} />
+        <PurePressQuotationPanel projectId={projectId} />
       </div>
     </main>
   );

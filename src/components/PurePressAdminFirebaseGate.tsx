@@ -1,18 +1,31 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "@/utils/firebaseConfig";
+
+const PUREPRESS_OWNER_LOGIN_PATH = "/admin/login";
 
 export default function PurePressAdminFirebaseGate({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  const pathname = usePathname();
+  const ownerLogin = pathname === PUREPRESS_OWNER_LOGIN_PATH;
+  const [state, setState] = useState<"loading" | "ready" | "error">(
+    ownerLogin ? "ready" : "loading",
+  );
 
   useEffect(() => {
+    if (ownerLogin) {
+      setState("ready");
+      return;
+    }
+
     let active = true;
+    setState("loading");
 
     const authorize = async () => {
       try {
@@ -54,7 +67,9 @@ export default function PurePressAdminFirebaseGate({
     return () => {
       active = false;
     };
-  }, []);
+  }, [ownerLogin]);
+
+  if (ownerLogin) return <>{children}</>;
 
   if (state === "loading") {
     return (
