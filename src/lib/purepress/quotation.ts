@@ -257,7 +257,7 @@ function quoteLineCategory(value: unknown, field: string): PurePressQuoteLineCat
 }
 
 function safeNumber(value: bigint, field: string) {
-  if (value < 0n || value > MAX_SAFE_BIGINT) {
+  if (value < BigInt(0) || value > MAX_SAFE_BIGINT) {
     throw new PurePressQuoteValidationError(`${field} exceeds the supported money range.`, field);
   }
   return Number(value);
@@ -274,7 +274,7 @@ export function calculatePercentageTaxMinor(discountedSubtotalMinor: number, tax
   integer(taxRateBps, 1, PUREPRESS_QUOTE_MAX_TAX_BPS, "tax.taxRateBps");
   const numerator = BigInt(discountedSubtotalMinor) * BigInt(taxRateBps);
   // Deterministic integer rounding to nearest minor unit, half up.
-  return safeNumber((numerator + 5_000n) / 10_000n, "taxMinor");
+  return safeNumber((numerator + BigInt(5000)) / BigInt(10000), "taxMinor");
 }
 
 export function calculateQuoteTotals(
@@ -297,7 +297,7 @@ export function calculateQuoteTotals(
       lineTotalMinor: lineTotalMinor(quantity, unitPriceMinor),
     };
   });
-  let subtotal = 0n;
+  let subtotal = BigInt(0);
   for (const line of lineItems) subtotal += BigInt(line.lineTotalMinor);
   const subtotalMinor = safeNumber(subtotal, "subtotalMinor");
   const boundedDiscount = integer(discountMinor, 0, PUREPRESS_QUOTE_MAX_DISCOUNT_MINOR, "discountMinor");
