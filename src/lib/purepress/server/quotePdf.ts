@@ -21,6 +21,13 @@ function placementSummary(quote: PurePressQuote) {
   }).join("; ") || "";
 }
 
+function supplySummary(value: PurePressQuote["jobSnapshot"]["supplySource"]) {
+  if (value === "customer_supplied") return "Customer supplying items";
+  if (value === "purepress_supplied") return "PurePress supplying items";
+  if (value === "mixed") return "Customer + PurePress supply";
+  return "Supply source not yet confirmed";
+}
+
 export function buildPurePressQuotationPdf(quote: PurePressQuote) {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -105,7 +112,7 @@ export function buildPurePressQuotationPdf(quote: PurePressQuote) {
     `JOB: ${quote.jobSnapshot.referenceCode}`,
     quote.jobSnapshot.itemSummary,
     quote.jobSnapshot.quantity ? `${quote.jobSnapshot.quantity} item(s)` : undefined,
-    `Supply: ${quote.jobSnapshot.supplySource.replaceAll("_", " ")}`,
+    `Supply: ${supplySummary(quote.jobSnapshot.supplySource)}`,
   ].filter(Boolean).map((value) => cleanPdfText(value));
   doc.text(jobLines, left + 94, y);
   y += Math.max(customerLines.length, jobLines.length) * 4.6 + 7;
@@ -148,7 +155,7 @@ export function buildPurePressQuotationPdf(quote: PurePressQuote) {
     y += rowHeight + 2;
   }
 
-  ensure(35);
+  ensure(37);
   const totalX = right - 72;
   const totalValueX = right - 2;
   const moneyRow = (label: string, value: number, bold = false) => {
@@ -166,9 +173,11 @@ export function buildPurePressQuotationPdf(quote: PurePressQuote) {
     const rate = (quote.tax.taxRateBps / 100).toFixed(2).replace(/\.00$/, "");
     moneyRow(`${label} (${rate}%)`, quote.taxMinor);
   }
+  const totalDividerY = y + 1;
   doc.setDrawColor(...MAGENTA);
   doc.setLineWidth(0.8);
-  doc.line(totalX, y - 2, right, y - 2);
+  doc.line(totalX, totalDividerY, totalValueX, totalDividerY);
+  y = totalDividerY + 5;
   moneyRow("TOTAL BWP", quote.totalMinor, true);
   y += 3;
 

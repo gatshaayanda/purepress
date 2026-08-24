@@ -120,10 +120,10 @@ export default function PurePressJobWorkspace({ projectId }: { projectId: string
         </section>
       </div>
 
-      <section className={styles.controls}><div className={styles.sectionTitle}><span>OWNER CONTROLS</span><h2>Bounded Patch D updates</h2></div>
+      <section className={styles.controls}><div className={styles.sectionTitle}><span>OWNER CONTROLS</span><h2>Owner updates</h2></div>
         <div className={styles.controlGrid}>
           <SupplyEditor value={job.supplySource || "unknown"} saving={saving === "supply"} onSave={(value) => patch("supply", { supplySource: value })} />
-          {earlyStatus ? <StatusEditor value={job.status} saving={saving === "status"} onSave={(value) => patch("status", { status: value })} /> : <div className={styles.readOnlyControl}><strong>Status</strong><p>{friendly(job.status)} is display-only in Patch D. Later workflow patches own forward transitions.</p></div>}
+          {earlyStatus ? <StatusEditor value={job.status} saving={saving === "status"} onSave={(value) => patch("status", { status: value })} /> : <div className={styles.readOnlyControl}><strong>Status</strong><p>{friendly(job.status)} is managed by the active PurePress workflow.</p></div>}
           <NotesEditor value={job.internal.ownerNotes || ""} saving={saving === "notes"} onSave={(value) => patch("notes", { ownerNotes: value })} />
         </div>
       </section>

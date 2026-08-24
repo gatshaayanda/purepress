@@ -4,13 +4,14 @@ import { PurePressQuoteValidationError } from "@/lib/purepress/quotation";
 import {
   createOwnerQuoteRevision,
   getOwnerQuoteRevision,
-  issueOwnerQuote,
   markOwnerQuoteReady,
   recordOwnerQuoteAcceptance,
   returnOwnerQuoteToDraft,
   rotateOwnerQuoteApprovalLink,
   saveOwnerQuoteDraft,
 } from "@/lib/purepress/server/quotes";
+import { logPurePressQuoteServerError } from "@/lib/purepress/server/quoteDiagnostics";
+import { issueOwnerQuoteE1 } from "@/lib/purepress/server/quoteIssueRepair";
 
 export const dynamic = "force-dynamic";
 const MAX_BODY_BYTES = 48 * 1024;
@@ -33,19 +34,40 @@ function assertActionShape(body: Record<string, unknown>, action: string) {
   }
 }
 
+function serverFailure(
+  reason: unknown,
+  scope: string,
+  context: { action?: string; projectId?: string; quoteId?: string },
+  fallback: string,
+) {
+  const status = statusOf(reason);
+  if (status < 500) {
+    return NextResponse.json(
+      { error: reason instanceof Error ? reason.message : fallback },
+      { status, headers: PRIVATE_HEADERS },
+    );
+  }
+  const diagnosticId = logPurePressQuoteServerError(scope, context, reason);
+  return NextResponse.json(
+    { error: fallback, diagnosticId },
+    { status, headers: PRIVATE_HEADERS },
+  );
+}
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ projectId: string; quoteId: string }> },
 ) {
+  let projectId = "";
+  let quoteId = "";
   try {
     await requirePurePressAdmin(request);
-    const { projectId, quoteId } = await context.params;
+    ({ projectId, quoteId } = await context.params);
     const quote = await getOwnerQuoteRevision(projectId, quoteId);
     if (!quote) return NextResponse.json({ error: "Quotation not found." }, { status: 404, headers: PRIVATE_HEADERS });
     return NextResponse.json({ quote }, { headers: PRIVATE_HEADERS });
   } catch (reason) {
-    const status = statusOf(reason);
-    return NextResponse.json({ error: status >= 500 ? "PurePress could not load this quotation." : reason instanceof Error ? reason.message : "Quotation access was rejected." }, { status, headers: PRIVATE_HEADERS });
+    return serverFailure(reason, "owner_quote_get", { projectId, quoteId }, "PurePress could not load this quotation.");
   }
 }
 
@@ -53,6 +75,8 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ projectId: string; quoteId: string }> },
 ) {
+  let projectId = "";
+  let quoteId = "";
   try {
     await requirePurePressAdmin(request);
     const bodyText = await request.text();
@@ -60,12 +84,11 @@ export async function PATCH(
       return NextResponse.json({ error: "Quotation draft is too large." }, { status: 413, headers: PRIVATE_HEADERS });
     }
     const body = JSON.parse(bodyText);
-    const { projectId, quoteId } = await context.params;
+    ({ projectId, quoteId } = await context.params);
     const result = await saveOwnerQuoteDraft(projectId, quoteId, body);
     return NextResponse.json(result, { headers: PRIVATE_HEADERS });
   } catch (reason) {
-    const status = statusOf(reason);
-    return NextResponse.json({ error: status >= 500 ? "PurePress could not save this quotation." : reason instanceof Error ? reason.message : "Quotation update was rejected." }, { status, headers: PRIVATE_HEADERS });
+    return serverFailure(reason, "owner_quote_patch", { projectId, quoteId }, "PurePress could not save this quotation.");
   }
 }
 
@@ -73,6 +96,9 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ projectId: string; quoteId: string }> },
 ) {
+  let action = "";
+  let projectId = "";
+  let quoteId = "";
   try {
     await requirePurePressAdmin(request);
     const bodyText = await request.text();
@@ -80,18 +106,18 @@ export async function POST(
       return NextResponse.json({ error: "Quotation action is too large." }, { status: 413, headers: PRIVATE_HEADERS });
     }
     const body = bodyText ? JSON.parse(bodyText) as Record<string, unknown> : {};
-    const action = typeof body.action === "string" ? body.action : "";
+    action = typeof body.action === "string" ? body.action : "";
     if (!["mark_ready", "return_to_draft", "issue", "create_revision", "rotate_link", "record_acceptance"].includes(action)) {
       throw new PurePressQuoteValidationError("A supported quotation action is required.", "action");
     }
     assertActionShape(body, action);
-    const { projectId, quoteId } = await context.params;
+    ({ projectId, quoteId } = await context.params);
     const result = action === "mark_ready"
       ? await markOwnerQuoteReady(projectId, quoteId)
       : action === "return_to_draft"
         ? await returnOwnerQuoteToDraft(projectId, quoteId)
         : action === "issue"
-          ? await issueOwnerQuote(projectId, quoteId)
+          ? await issueOwnerQuoteE1(projectId, quoteId)
           : action === "create_revision"
             ? await createOwnerQuoteRevision(projectId, quoteId)
             : action === "rotate_link"
@@ -103,7 +129,11 @@ export async function POST(
                 });
     return NextResponse.json(result, { headers: PRIVATE_HEADERS });
   } catch (reason) {
-    const status = statusOf(reason);
-    return NextResponse.json({ error: status >= 500 ? "PurePress could not complete this quotation action." : reason instanceof Error ? reason.message : "Quotation action was rejected." }, { status, headers: PRIVATE_HEADERS });
+    return serverFailure(
+      reason,
+      "owner_quote_action",
+      { action: action || "unknown", projectId, quoteId },
+      "PurePress could not complete this quotation action.",
+    );
   }
 }
