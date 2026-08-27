@@ -49,9 +49,19 @@ export interface ArtworkWorkflowState {
   finalArtworkReadyBy?: string;
 }
 
+export type QualityCheckState = "not_checked" | "passed" | "issue" | "not_applicable";
+export interface QualityCheckItem { key: string; label: string; state: QualityCheckState; issueNote?: string; updatedAt?: IsoDateString; updatedBy?: string; }
+export interface ProductionPlan {
+  machineAssignment?: string; scheduledStartAt?: IsoDateString; scheduledDueAt?: IsoDateString; operatorName?: string; productionNotes?: string;
+  productionStartedAt?: IsoDateString; productionPausedAt?: IsoDateString; productionCompletedAt?: IsoDateString;
+  targetQuantity?: number; completedQuantity?: number; rejectedQuantity?: number; reworkQuantity?: number;
+}
+export interface CompletionFact { completedAt: IsoDateString; completedBy: string; completionNote?: string; }
+
 export interface EmbroideryJobInternal {
   source: PurePressJobSource; ownerNotes?: string; adminNotes?: string; productionInstructions?: string; qualityNotes?: string;
   readiness?: JobReadiness; nextAction?: OperationalNextAction; receiving?: SupplyReceivingFact[]; embroidery?: EmbroideryProductionSpecification;
+  productionPlan?: ProductionPlan; qualityChecks?: QualityCheckItem[]; completion?: CompletionFact; operationsVersion?: number;
   sourceArtworkFileIds?: string[]; sourceQuoteReference?: string; convertedAt?: IsoDateString; artworkWorkflow?: ArtworkWorkflowState;
 }
 export interface EmbroideryJob {
@@ -86,7 +96,12 @@ export interface ProofApproval {
   customerComment?: string; decidedByUid?: string; decidedAt?: IsoDateString; internal: { adminNotes?: string }; createdAt: IsoDateString; updatedAt: IsoDateString;
 }
 
-export interface ProductionUpdate { id: string; orderId: string; status: PurePressOrderStatus; customerVisible: { message: string }; internal: { adminNotes?: string }; createdBy: PurePressActorType; createdAt: IsoDateString; }
+export type ProductionUpdateType = "receiving_update" | "scheduled" | "production_started" | "progress" | "paused" | "resumed" | "production_finished" | "qc_started" | "qc_issue" | "qc_passed" | "ready" | "completed" | "next_action" | "production_note";
+export interface ProductionUpdate {
+  id: string; projectId: string; orderId: string; type: ProductionUpdateType; createdAt: IsoDateString; actor: "owner"; actorUid?: string;
+  quantityCompleted?: number; quantityRejected?: number; quantityRework?: number; note?: string; machineAssignment?: string; fromState?: string; toState?: string;
+}
+export interface ProductionMutationReceipt { id: string; projectId: string; clientMutationId: string; operationsVersion: number; action: string; createdAt: IsoDateString; }
 export interface OrderMessage { id: string; orderId: string; customerUid: string; senderType: "customer" | "admin"; senderUid?: string; visibility: PurePressVisibility; text?: string; attachmentFileIds?: string[]; createdAt: IsoDateString; }
 export interface MarketingMediaPermission { grantedByUid?: string; grantedAt: IsoDateString; scope: string; withdrawnAt?: IsoDateString; }
 export interface PublicWorkMedia { id: string; sourceOrderId: string; sourceFileId: string; mediaUrl: string; altText: string; caption?: string; safePublic: boolean; published: boolean; permission?: MarketingMediaPermission; publishedAt?: IsoDateString; publishedByUid?: string; }

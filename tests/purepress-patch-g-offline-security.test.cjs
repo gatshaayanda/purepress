@@ -1,0 +1,14 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const root=path.resolve(__dirname,'..');const read=p=>fs.readFileSync(path.join(root,p),'utf8');const db=read('src/lib/purepress/offline/db.ts'),off=read('src/lib/purepress/offline/production.ts'),api=read('src/app/api/admin/purepress/jobs/[projectId]/production/route.ts'),server=read('src/lib/purepress/server/production.ts'),sw=fs.existsSync(path.join(root,'public/sw.js'))?read('public/sw.js'):'';
+test('private cache is indexeddb and UID scoped',()=>{assert.match(db,/indexedDB/);assert.match(db,/record\.key\.startsWith\(`\$\{record\.uid\}:/);assert.doesNotMatch(off,/localStorage/)});
+test('trusted device opt in gates private persistence',()=>{assert.match(off,/trusted-device/);assert.match(off,/if\(!await isPurePressTrustedDevice\(uid\)\)return/)});
+test('outbox carries mutation id owner uid base version and status',()=>{for(const x of ['clientMutationId','projectId','ownerUid','baseVersion','syncStatus'])assert.match(off,new RegExp(x))});
+test('operation ids use cryptographic randomness',()=>assert.match(off,/crypto\.getRandomValues/));
+test('server auth is derived from PurePress admin boundary',()=>{assert.match(api,/requirePurePressAdmin/);assert.doesNotMatch(server,/ownerUid.*input|input\.ownerUid/)});
+test('queued lifecycle changes do not alter cached authoritative job',()=>{assert.match(off,/queueProductionMutation/);assert.doesNotMatch(off,/status\s*=\s*"in_production"/)});
+test('conflicts stay reviewable',()=>{assert.match(off,/syncStatus:"conflict"/);assert.match(off,/operations_conflict/)});
+test('failed sync remains in outbox',()=>assert.match(off,/syncStatus:"failed"/));
+test('reconnect retry is supported without Background Sync dependency',()=>{assert.match(off,/syncProductionOutbox/);assert.doesNotMatch(off,/SyncManager|backgroundSync/i)});
+test('private file urls are not written to offline module',()=>{assert.doesNotMatch(off,/viewUrl|signedURL|fileKey/)});
+test('no public media creation',()=>assert.doesNotMatch(server,/PublicWorkMedia|public_gallery|completion_media/));
+test('no direct client Firestore mutation',()=>{assert.doesNotMatch(off,/firebase\/firestore|setDoc|updateDoc/)});
+test('service worker baseline keeps APIs network-only when present',()=>{if(sw)assert.match(sw,/url\.pathname\.startsWith\("\/api\/"\).*return/s)});
