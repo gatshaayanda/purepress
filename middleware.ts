@@ -7,6 +7,13 @@ import {
 
 const PUREPRESS_OWNER_LOGIN_PATH = "/admin/login";
 
+function legacyCustomerDestination(pathname: string) {
+  if (pathname === "/client/login") return "/my-purepress/login";
+  if (pathname === "/client/dashboard") return "/my-purepress";
+  const match = pathname.match(/^\/client\/project\/([^/]+)\/?$/);
+  return match ? `/my-purepress/orders/${encodeURIComponent(match[1])}` : null;
+}
+
 function isFounderRoute(pathname: string) {
   if (pathname === PUREPRESS_OWNER_LOGIN_PATH) return false;
   return pathname === "/admin"
@@ -22,6 +29,14 @@ function isFounderApi(pathname: string) {
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
+  const customerDestination = legacyCustomerDestination(pathname);
+  if (customerDestination) {
+    const target = req.nextUrl.clone();
+    target.pathname = customerDestination;
+    target.search = "";
+    return NextResponse.redirect(target, 308);
+  }
+
   if (!isFounderRoute(pathname)) return NextResponse.next();
 
   const authorization = await verifyFounderAuthorization({
@@ -49,5 +64,13 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*", "/api/admin/boardsignal/:path*", "/api/admin/purepress/:path*"],
+  matcher: [
+    "/client/login",
+    "/client/dashboard",
+    "/client/project/:path*",
+    "/admin",
+    "/admin/:path*",
+    "/api/admin/boardsignal/:path*",
+    "/api/admin/purepress/:path*",
+  ],
 };

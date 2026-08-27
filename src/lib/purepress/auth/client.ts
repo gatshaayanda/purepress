@@ -38,6 +38,10 @@ export function pendingPurePressSignInEmail() {
   return window.sessionStorage.getItem(PUREPRESS_EMAIL_LINK_KEY) ?? "";
 }
 
+export function clearPendingPurePressSignInEmail() {
+  if (typeof window !== "undefined") window.sessionStorage.removeItem(PUREPRESS_EMAIL_LINK_KEY);
+}
+
 export async function completePurePressCustomerSignIn(email: string, url?: string): Promise<User> {
   const normalizedEmail = normalizePurePressEmail(email);
   const candidate = url ?? (typeof window !== "undefined" ? window.location.href : "");
@@ -46,6 +50,6 @@ export async function completePurePressCustomerSignIn(email: string, url?: strin
   }
 
   const credential = await signInWithEmailLink(auth, normalizedEmail, candidate);
-  if (typeof window !== "undefined") window.sessionStorage.removeItem(PUREPRESS_EMAIL_LINK_KEY);
+  clearPendingPurePressSignInEmail();
   return credential.user;
 }

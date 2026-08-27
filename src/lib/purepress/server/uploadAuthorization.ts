@@ -5,7 +5,7 @@ import { PUREPRESS_PROJECT_SCHEMA } from "../projectCompatibility";
 import { PUREPRESS_UPLOAD_POLICIES } from "../uploads";
 import { requirePurePressCustomer, purePressCustomerCanAccessJob } from "../auth/server";
 import { isPurePressAdmin } from "./adminAuth";
-export type PurePressUploadActor = { role:"admin"; uid:"purepress-admin" } | { role:"customer"; uid:string; customerId:string };
+export type PurePressUploadActor = { role:"admin"; uid:"purepress-admin" } | { role:"customer"; uid:string; customerId?:string };
 async function assertOperationalJob(jobId: string) {
   const snapshot = await getAdminDb().collection("projects").doc(jobId).get();
   if (!snapshot.exists || snapshot.data()?.purepress_schema !== PUREPRESS_PROJECT_SCHEMA) throw new Error("PurePress order context was not found.");

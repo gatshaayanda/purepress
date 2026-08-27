@@ -14,6 +14,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ConnectivityProvider from "@/components/ConnectivityProvider";
 import RouteAwarePublicChrome from "@/components/RouteAwarePublicChrome";
+import PurePressInstallPrompt from "@/components/purepress/PurePressInstallPrompt";
 
 const montserrat = Montserrat({
   variable: "--font-sans",
@@ -144,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AnalyticsProvider>
           <ConnectivityProvider>
             <RouteAwarePublicChrome>{children}</RouteAwarePublicChrome>
+            <PurePressInstallPrompt />
             <ServiceWorkerRegister />
             <Analytics />
             <SpeedInsights />

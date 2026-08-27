@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v5";
+const CACHE_VERSION = "v6";
 const SHELL_CACHE = `boardsignal-shell-${CACHE_VERSION}`;
 const STATIC_CACHE = `boardsignal-static-${CACHE_VERSION}`;
 const PUBLIC_CACHE = `boardsignal-public-${CACHE_VERSION}`;
@@ -9,6 +9,7 @@ const APP_SHELL = [
   "/offline",
   "/offline/player-room",
   "/offline/purepress-studio",
+  "/offline/my-purepress",
   "/boardsignal?source=pwa",
   "/manifest.webmanifest",
   "/icons/boardsignal-192.png",
@@ -53,6 +54,11 @@ self.addEventListener("fetch", (event) => {
   const isNavigation = request.mode === "navigate" || request.headers.get("accept")?.includes("text/html");
   if (isNavigation && url.pathname.startsWith("/boardsignal/player-room")) {
     event.respondWith(fetch(request).catch(() => caches.match("/offline/player-room").then((response) => response || caches.match("/offline"))));
+    return;
+  }
+
+  if (isNavigation && url.pathname.startsWith("/my-purepress")) {
+    event.respondWith(fetch(request).catch(() => caches.match("/offline/my-purepress").then((response) => response || caches.match("/offline"))));
     return;
   }
 

@@ -31,6 +31,8 @@ const launch = read("src/components/PwaLaunchRedirect.tsx");
 const routes = read("src/lib/purepress/publicRoutes.ts");
 const chrome = read("src/components/RouteAwarePublicChrome.tsx");
 const appleIcon = read("src/app/apple-icon.tsx");
+const purePressInstall = read("src/components/purepress/PurePressInstallPrompt.tsx");
+const layout = read("src/app/layout.tsx");
 
 function pngSize(file) {
   const data = fs.readFileSync(path.join(root, file));
@@ -170,7 +172,15 @@ test("PurePress connectivity copy is route-aware while BoardSignal copy remains 
   assert.match(connectivity, /purePressSurface \? "OFFLINE" : "SAVED"/);
 });
 
-test("PurePress public shell leaves installation to the browser instead of mounting BoardSignal handlers", () => {
+test("PurePress public and My PurePress surfaces mount dedicated install UX while BoardSignal keeps its own handlers", () => {
+  assert.match(layout, /PurePressInstallPrompt/);
+  assert.equal((layout.match(/<PurePressInstallPrompt \/>/g) || []).length, 1);
+  assert.match(purePressInstall, /isPurePressPublicRoute\(pathname\)/);
+  assert.match(purePressInstall, /pathname === "\/my-purepress"/);
+  assert.match(purePressInstall, /beforeinstallprompt/);
+  assert.match(purePressInstall, /INSTALL PUREPRESS/);
+  assert.doesNotMatch(purePressInstall, /BoardSignal/);
+
   const purePressStart = chrome.indexOf("if (isPurePressPublicRoute(pathname))");
   const boardSignalStart = chrome.indexOf("return (", purePressStart + 1);
   const purePressBranch = chrome.slice(purePressStart, boardSignalStart);

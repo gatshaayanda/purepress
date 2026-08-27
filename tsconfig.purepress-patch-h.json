@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "rootDir": ".",
+    "outDir": ".test-dist-purepress-h"
+  },
+  "include": [
+    "src/lib/purepress/orderStatus.ts",
+    "src/lib/purepress/customerProjection.ts"
+  ]
+}

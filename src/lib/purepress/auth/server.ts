@@ -7,7 +7,11 @@ export interface PurePressCustomerIdentity {
   uid: string;
   email: string;
   displayName?: string;
-  customerId: string;
+  customerId?: string;
+}
+
+export function normalizePurePressServerEmail(value: unknown) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
 export function bearerTokenFromRequest(request: Request) {
@@ -18,35 +22,42 @@ export function bearerTokenFromRequest(request: Request) {
 
 export async function verifyPurePressFirebaseToken(request: Request): Promise<DecodedIdToken> {
   const token = bearerTokenFromRequest(request);
-  if (!token) throw Object.assign(new Error("Firebase authentication is required."), { status: 401 });
+  if (!token) throw Object.assign(new Error("Your sign-in has expired."), { status: 401 });
   try {
     return await getAdminAuth().verifyIdToken(token, true);
   } catch {
-    throw Object.assign(new Error("Firebase authentication was rejected."), { status: 401 });
+    throw Object.assign(new Error("Your sign-in has expired."), { status: 401 });
   }
 }
 
 /**
- * Resolves the Firebase identity to a server-provisioned PurePress customer.
- * A valid Firebase login alone does not grant order access.
+ * Authentication only. Order authorization is performed separately against the
+ * canonical PurePress customer/job relationship. A client-supplied UID, email,
+ * cookie or project ID never becomes identity here.
  */
 export async function requirePurePressCustomer(request: Request): Promise<PurePressCustomerIdentity> {
   const token = await verifyPurePressFirebaseToken(request);
-  const email = typeof token.email === "string" ? token.email.trim().toLowerCase() : "";
-  if (!email) throw Object.assign(new Error("The Firebase account has no verified email identity."), { status: 403 });
+  const email = normalizePurePressServerEmail(token.email);
+  if (!email || token.email_verified !== true) {
+    throw Object.assign(new Error("Use the verified email address for your PurePress order."), { status: 403 });
+  }
 
   const profile = await getAdminDb().collection("purepressCustomerProfiles").doc(token.uid).get();
-  if (!profile.exists) throw Object.assign(new Error("This Firebase account is not provisioned for PurePress customer access."), { status: 403 });
-  const data = profile.data() ?? {};
-  if (data.uid !== token.uid || String(data.email ?? "").trim().toLowerCase() !== email) {
-    throw Object.assign(new Error("PurePress customer identity does not match the authenticated Firebase account."), { status: 403 });
+  const data = profile.exists ? profile.data() ?? {} : {};
+  const profileEmail = normalizePurePressServerEmail(data.email);
+  if (profile.exists && (data.uid !== token.uid || (profileEmail && profileEmail !== email))) {
+    throw Object.assign(new Error("We could not confirm this PurePress sign-in."), { status: 403 });
   }
 
   return {
     uid: token.uid,
     email,
-    displayName: typeof data.displayName === "string" ? data.displayName : undefined,
-    customerId: typeof data.customerId === "string" && data.customerId.trim() ? data.customerId : token.uid,
+    displayName: typeof token.name === "string" && token.name.trim()
+      ? token.name.trim().slice(0, 120)
+      : typeof data.displayName === "string" && data.displayName.trim()
+        ? data.displayName.trim().slice(0, 120)
+        : undefined,
+    customerId: typeof data.customerId === "string" && data.customerId.trim() ? data.customerId.trim() : undefined,
   };
 }
 

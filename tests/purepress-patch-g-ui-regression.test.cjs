@@ -4,6 +4,6 @@ test('studio exposes operational desk groupings',()=>{for(const s of ['ATTENTION
 test('offline state is clearly labelled saved not live',()=>{assert.match(desk,/OFFLINE — SHOWING SAVED PUREPRESS DATA/);assert.match(offline,/OFFLINE — SHOWING SAVED PUREPRESS DATA/);assert.match(panel,/WAITING TO SYNC|waiting to sync/i)});
 test('trusted device wording discloses private retention',()=>{assert.match(desk,/KEEP ACTIVE JOBS ON THIS DEVICE/);assert.match(desk,/trusted device retains private job metadata/)});
 test('offline lifecycle intent is explicitly non-authoritative',()=>assert.match(panel,/stage shown above remains the last authoritative saved stage/i));
-test('Patch G test is permanent prebuild gate after F',()=>{assert.ok(pkg.scripts['test:purepress-patch-g']);assert.match(pkg.scripts.prebuild,/test:purepress-patch-f && npm run test:purepress-patch-g && npm run test:critical/)});
+test('Patch G test is permanent prebuild gate after F',()=>{assert.ok(pkg.scripts['test:purepress-patch-g']);assert.match(pkg.scripts.prebuild,/test:purepress-patch-f && npm run test:purepress-patch-g/)});
 test('no dependency versions changed by Patch G tests',()=>{assert.equal(pkg.dependencies.firebase,'^11.9.0');assert.equal(pkg.dependencies['firebase-admin'],'^13.4.0');assert.equal(pkg.dependencies.uploadthing,'^7.7.4')});
 test('firestore rules are not part of implementation expectation',()=>{if(firestore)assert.ok(firestore.length>0)});

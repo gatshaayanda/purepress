@@ -5,7 +5,7 @@
   "scripts": {
     "prepare:stockfish": "node scripts/prepare-stockfish.mjs",
     "postinstall": "npm run prepare:stockfish",
-    "prebuild": "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:purepress-brand && npm run test:purepress-patch-c && npm run test:purepress-patch-d && npm run test:purepress-patch-e && npm run test:purepress-patch-e1 && npm run test:purepress-patch-f && npm run test:purepress-patch-g && npm run test:critical && npm run test:pwa",
+    "prebuild": "npm run prepare:stockfish && npm run test:contrast && npm run test:purepress && npm run test:purepress-brand && npm run test:purepress-patch-c && npm run test:purepress-patch-d && npm run test:purepress-patch-e && npm run test:purepress-patch-e1 && npm run test:purepress-patch-f && npm run test:purepress-patch-g && npm run test:purepress-patch-h && npm run test:critical && npm run test:pwa",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -31,7 +31,8 @@
     "test:purepress-patch-e": "tsc -p tsconfig.purepress-patch-e.json && node --test tests/purepress-patch-e-validation.test.cjs tests/purepress-patch-e-architecture.test.cjs tests/purepress-patch-e-security.test.cjs tests/purepress-patch-e-pdf.test.cjs tests/purepress-patch-e-owner-entry.test.cjs",
     "test:purepress-patch-e1": "node --test tests/purepress-patch-e1-qa.test.cjs",
     "test:purepress-patch-f": "tsc -p tsconfig.purepress-patch-f.json && node --test tests/purepress-patch-f-domain-files.test.cjs tests/purepress-patch-f-readiness.test.cjs tests/purepress-patch-f-proof-behavior.test.cjs tests/purepress-patch-f-security-ux.test.cjs",
-    "test:purepress-patch-g": "tsc -p tsconfig.purepress-patch-g.json && node --test tests/purepress-patch-g-domain-production.test.cjs tests/purepress-patch-g-offline-security.test.cjs tests/purepress-patch-g-ui-regression.test.cjs"
+    "test:purepress-patch-g": "tsc -p tsconfig.purepress-patch-g.json && node --test tests/purepress-patch-g-domain-production.test.cjs tests/purepress-patch-g-offline-security.test.cjs tests/purepress-patch-g-ui-regression.test.cjs",
+    "test:purepress-patch-h": "tsc -p tsconfig.purepress-patch-h.json && node --test tests/purepress-patch-h-domain-projection.test.cjs tests/purepress-patch-h-identity-security.test.cjs tests/purepress-patch-h-decisions-privacy.test.cjs tests/purepress-patch-h-offline-ux.test.cjs tests/purepress-patch-h-install-pwa.test.cjs"
   },
   "dependencies": {
     "@uploadthing/react": "^7.3.3",
