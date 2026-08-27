@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "rootDir": "src/lib/purepress",
+    "outDir": ".test-dist-purepress-f"
+  },
+  "include": [
+    "src/lib/purepress/orderStatus.ts",
+    "src/lib/purepress/readiness.ts",
+    "src/lib/purepress/domain.ts",
+    "src/lib/purepress/artworkProof.ts"
+  ]
+}
