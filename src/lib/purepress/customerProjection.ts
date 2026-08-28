@@ -1,4 +1,5 @@
 import type { PurePressOrderStatus } from "./orderStatus";
+import type { PurePressTranslationKey } from "./i18n";
 
 export const PUREPRESS_CUSTOMER_STAGES = ["QUOTE", "ARTWORK", "MAKING", "READY", "COMPLETE"] as const;
 export type PurePressCustomerStage = (typeof PUREPRESS_CUSTOMER_STAGES)[number];
@@ -13,6 +14,17 @@ export interface PurePressCustomerStatusProjection {
   actionInstruction?: string;
 }
 
+export const PUREPRESS_CUSTOMER_STATUS_CODES = ["REQUEST_RECEIVED","NEEDS_INFORMATION","QUOTE_BEING_PREPARED","QUOTE_READY","ARTWORK_BEING_PREPARED","ARTWORK_READY","READY_FOR_PRODUCTION","IN_PRODUCTION","QUALITY_CHECK","READY_FOR_COLLECTION","COMPLETED","CANCELLED"] as const;
+export type PurePressCustomerStatusCode = (typeof PUREPRESS_CUSTOMER_STATUS_CODES)[number];
+export interface PurePressCustomerStatusSemanticProjection {
+  code: PurePressCustomerStatusCode;
+  stage: PurePressCustomerStage | "CANCELLED";
+  headlineKey: PurePressTranslationKey;
+  explanationKey: PurePressTranslationKey;
+  nextKey: PurePressTranslationKey;
+  action: PurePressCustomerAction;
+  actionInstructionKey?: PurePressTranslationKey;
+}
 const STATUS_PROJECTION: Record<PurePressOrderStatus, PurePressCustomerStatusProjection> = {
   new_request: {
     stage: "QUOTE",
@@ -104,6 +116,22 @@ const STATUS_PROJECTION: Record<PurePressOrderStatus, PurePressCustomerStatusPro
   },
 };
 
+const STATUS_SEMANTIC: Record<PurePressOrderStatus, PurePressCustomerStatusSemanticProjection> = {
+  new_request:{code:"REQUEST_RECEIVED",stage:"QUOTE",headlineKey:"customer.status.REQUEST_RECEIVED.headline",explanationKey:"customer.status.REQUEST_RECEIVED.explanation",nextKey:"customer.status.REQUEST_RECEIVED.next",action:"NONE"},
+  needs_information:{code:"NEEDS_INFORMATION",stage:"QUOTE",headlineKey:"customer.status.NEEDS_INFORMATION.headline",explanationKey:"customer.status.NEEDS_INFORMATION.explanation",nextKey:"customer.status.NEEDS_INFORMATION.next",action:"CONTACT_PUREPRESS",actionInstructionKey:"customer.status.NEEDS_INFORMATION.action"},
+  quote_ready:{code:"QUOTE_BEING_PREPARED",stage:"QUOTE",headlineKey:"customer.status.QUOTE_BEING_PREPARED.headline",explanationKey:"customer.status.QUOTE_BEING_PREPARED.explanation",nextKey:"customer.status.QUOTE_BEING_PREPARED.next",action:"NONE"},
+  awaiting_quote_approval:{code:"QUOTE_READY",stage:"QUOTE",headlineKey:"customer.status.QUOTE_READY.headline",explanationKey:"customer.status.QUOTE_READY.explanation",nextKey:"customer.status.QUOTE_READY.next",action:"REVIEW_QUOTE",actionInstructionKey:"customer.status.QUOTE_READY.action"},
+  artwork_proof:{code:"ARTWORK_BEING_PREPARED",stage:"ARTWORK",headlineKey:"customer.status.ARTWORK_BEING_PREPARED.headline",explanationKey:"customer.status.ARTWORK_BEING_PREPARED.explanation",nextKey:"customer.status.ARTWORK_BEING_PREPARED.next",action:"NONE"},
+  awaiting_proof_approval:{code:"ARTWORK_READY",stage:"ARTWORK",headlineKey:"customer.status.ARTWORK_READY.headline",explanationKey:"customer.status.ARTWORK_READY.explanation",nextKey:"customer.status.ARTWORK_READY.next",action:"REVIEW_ARTWORK",actionInstructionKey:"customer.status.ARTWORK_READY.action"},
+  approved_for_production:{code:"READY_FOR_PRODUCTION",stage:"MAKING",headlineKey:"customer.status.READY_FOR_PRODUCTION.headline",explanationKey:"customer.status.READY_FOR_PRODUCTION.explanation",nextKey:"customer.status.READY_FOR_PRODUCTION.next",action:"NONE"},
+  in_production:{code:"IN_PRODUCTION",stage:"MAKING",headlineKey:"customer.status.IN_PRODUCTION.headline",explanationKey:"customer.status.IN_PRODUCTION.explanation",nextKey:"customer.status.IN_PRODUCTION.next",action:"NONE"},
+  quality_check:{code:"QUALITY_CHECK",stage:"MAKING",headlineKey:"customer.status.QUALITY_CHECK.headline",explanationKey:"customer.status.QUALITY_CHECK.explanation",nextKey:"customer.status.QUALITY_CHECK.next",action:"NONE"},
+  ready:{code:"READY_FOR_COLLECTION",stage:"READY",headlineKey:"customer.status.READY_FOR_COLLECTION.headline",explanationKey:"customer.status.READY_FOR_COLLECTION.explanation",nextKey:"customer.status.READY_FOR_COLLECTION.next",action:"NONE"},
+  completed:{code:"COMPLETED",stage:"COMPLETE",headlineKey:"customer.status.COMPLETED.headline",explanationKey:"customer.status.COMPLETED.explanation",nextKey:"customer.status.COMPLETED.next",action:"NONE"},
+  cancelled:{code:"CANCELLED",stage:"CANCELLED",headlineKey:"customer.status.CANCELLED.headline",explanationKey:"customer.status.CANCELLED.explanation",nextKey:"customer.status.CANCELLED.next",action:"CONTACT_PUREPRESS",actionInstructionKey:"customer.status.CANCELLED.action"}
+};
+export function projectPurePressCustomerStatusSemantic(status: PurePressOrderStatus): PurePressCustomerStatusSemanticProjection { return STATUS_SEMANTIC[status]; }
+
 export function projectPurePressCustomerStatus(status: PurePressOrderStatus): PurePressCustomerStatusProjection {
   return STATUS_PROJECTION[status];
 }
@@ -120,7 +148,7 @@ export function customerProgressFor(status: PurePressOrderStatus) {
 
 export interface PurePressCustomerQuoteProjection {
   state: "being_prepared" | "ready" | "approved" | "changes_requested";
-  label: string;
+  labelKey: PurePressTranslationKey;
   quoteNumber?: string;
   revision?: number;
   currency?: "BWP";
@@ -136,7 +164,7 @@ export interface PurePressCustomerQuoteProjection {
 
 export interface PurePressCustomerProofProjection {
   state: "being_prepared" | "ready" | "approved" | "changes_requested";
-  label: string;
+  labelKey: PurePressTranslationKey;
   revision?: number;
   customerVisibleNotes?: string;
   placementSummary?: string;
@@ -156,7 +184,7 @@ export interface PurePressCustomerOrderProjection {
   requestedDate?: string;
   promisedDate?: string;
   customerName?: string;
-  status: PurePressCustomerStatusProjection;
+  status: PurePressCustomerStatusSemanticProjection;
   progress: ReturnType<typeof customerProgressFor>;
   quote?: PurePressCustomerQuoteProjection;
   artwork?: PurePressCustomerProofProjection;

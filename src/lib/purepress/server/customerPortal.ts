@@ -5,7 +5,7 @@ import type { Customer, EmbroideryJob, JobFile, ProofRevision, ProofState } from
 import {
   PUREPRESS_COLLECTION_DETAILS,
   customerProgressFor,
-  projectPurePressCustomerStatus,
+  projectPurePressCustomerStatusSemantic,
   sortPurePressCustomerOrders,
   type PurePressCustomerOrderProjection,
   type PurePressCustomerProofProjection,
@@ -148,7 +148,7 @@ async function loadProof(job: EmbroideryJob) {
 function quoteProjection(job: EmbroideryJob, quote: PurePressQuote | null): PurePressCustomerQuoteProjection | undefined {
   if (!quote) {
     if (["new_request", "needs_information", "quote_ready"].includes(job.status)) {
-      return { state: "being_prepared", label: "QUOTE BEING PREPARED", canReview: false };
+      return { state: "being_prepared", labelKey: "customer.quoteBeingPrepared", canReview: false };
     }
     return undefined;
   }
@@ -157,14 +157,10 @@ function quoteProjection(job: EmbroideryJob, quote: PurePressQuote | null): Pure
     : quote.status === "changes_requested"
       ? "changes_requested"
       : "ready";
-  const label = state === "approved"
-    ? "QUOTE APPROVED"
-    : state === "changes_requested"
-      ? "CHANGES REQUESTED"
-      : `QUOTE READY — ${formatBwpMinor(quote.totalMinor)}`;
+  const labelKey = state === "approved" ? "customer.quoteApproved" : state === "changes_requested" ? "customer.changesRequested" : "customer.quoteReady";
   return {
     state,
-    label,
+    labelKey,
     quoteNumber: quote.quoteNumber,
     revision: quote.revision,
     currency: "BWP",
@@ -186,14 +182,14 @@ function quoteProjection(job: EmbroideryJob, quote: PurePressQuote | null): Pure
 
 function proofProjection(job: EmbroideryJob, loaded: Awaited<ReturnType<typeof loadProof>>): PurePressCustomerProofProjection | undefined {
   if (!loaded) {
-    if (job.status === "artwork_proof") return { state: "being_prepared", label: "ARTWORK BEING PREPARED", previewCount: 0, canReview: false };
+    if (job.status === "artwork_proof") return { state: "being_prepared", labelKey: "customer.artworkBeingPrepared", previewCount: 0, canReview: false };
     return undefined;
   }
   const { proof, state } = loaded;
   const projectedState = state.status === "approved" ? "approved" : state.status === "changes_requested" ? "changes_requested" : "ready";
   return {
     state: projectedState,
-    label: projectedState === "approved" ? "ARTWORK APPROVED" : projectedState === "changes_requested" ? "CHANGES REQUESTED" : "ARTWORK READY TO CHECK",
+    labelKey: projectedState === "approved" ? "customer.artworkApproved" : projectedState === "changes_requested" ? "customer.changesRequested" : "customer.artworkReady",
     revision: proof.revision,
     ...(proof.customerVisibleNotes ? { customerVisibleNotes: proof.customerVisibleNotes } : {}),
     ...(proof.placementSummary ? { placementSummary: proof.placementSummary } : {}),
@@ -205,9 +201,6 @@ function proofProjection(job: EmbroideryJob, loaded: Awaited<ReturnType<typeof l
   };
 }
 
-function formatBwpMinor(value: number) {
-  return `P${(value / 100).toLocaleString("en-BW", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 async function projectCustomerOrder(
   projectData: PurePressCustomerProjectDocument,
@@ -229,7 +222,7 @@ async function projectCustomerOrder(
     ...(job.customerVisible.requestedDate ? { requestedDate: job.customerVisible.requestedDate } : {}),
     ...(commercial?.estimatedCompletionDate ? { promisedDate: commercial.estimatedCompletionDate } : {}),
     ...(customer.customerVisible.displayName ? { customerName: customer.customerVisible.displayName } : {}),
-    status: projectPurePressCustomerStatus(job.status),
+    status: projectPurePressCustomerStatusSemantic(job.status),
     progress: customerProgressFor(job.status),
     ...(commercial ? { quote: commercial } : {}),
     ...(artwork ? { artwork } : {}),

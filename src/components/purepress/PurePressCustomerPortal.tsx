@@ -17,24 +17,8 @@ import {
   setPurePressCustomerTrustedDevice,
 } from "@/lib/purepress/offline/customer";
 import styles from "./PurePressCustomerPortal.module.css";
-
-function money(value?: number) {
-  if (typeof value !== "number") return "—";
-  return `P${(value / 100).toLocaleString("en-BW", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function date(value?: string) {
-  if (!value) return "—";
-  const parsed = new Date(value.length === 10 ? `${value}T12:00:00+02:00` : value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString("en-BW", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Gaborone" });
-}
-
-function dateTime(value: string) {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString("en-BW", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Gaborone" });
-}
+import { usePurePressLanguage } from "./PurePressLanguageProvider";
+import { formatPurePressDate, formatPurePressDateTime, formatPurePressMoney, type PurePressTranslationKey } from "@/lib/purepress/i18n";
 
 async function jsonOrError<T>(response: Response): Promise<T> {
   const body = await response.json().catch(() => ({})) as { error?: string } & T;
@@ -93,11 +77,12 @@ function PortalHeader({ user, customerName }: { user: User; customerName?: strin
 }
 
 function SavedBanner({ updatedAt }: { updatedAt?: string }) {
+  const { locale } = usePurePressLanguage();
   return (
     <div className={styles.savedBanner} role="status">
       <strong>SAVED COPY</strong>
       <span>You’re offline. This is the last update saved on this device.</span>
-      {updatedAt ? <span>LAST UPDATED {dateTime(updatedAt)}</span> : null}
+      {updatedAt ? <span>LAST UPDATED {formatPurePressDateTime(locale, updatedAt)}</span> : null}
     </div>
   );
 }
@@ -133,20 +118,21 @@ function ActionButton({ order }: { order: PurePressCustomerOrderProjection }) {
 }
 
 function OrderCard({ order }: { order: PurePressCustomerOrderProjection }) {
+  const { t } = usePurePressLanguage();
   return (
     <article className={styles.orderCard}>
       <p className={styles.orderReference}>ORDER {order.referenceCode}</p>
-      <h2>{order.title}</h2>
+      <h2 data-pp-no-translate>{order.title}</h2>
       {order.quantity ? <p className={styles.recognition}>{order.quantity} item{order.quantity === 1 ? "" : "s"}{order.garmentSummary ? ` · ${order.garmentSummary}` : ""}</p> : order.garmentSummary ? <p className={styles.recognition}>{order.garmentSummary}</p> : null}
       <div className={styles.answerBlock}>
         <span>CURRENT STATUS</span>
-        <strong>{order.status.headline}</strong>
+        <strong>{t(order.status.headlineKey)}</strong>
       </div>
       <div className={styles.nextBlock}>
         <span>NEXT</span>
-        <p>{order.status.next}</p>
+        <p>{t(order.status.nextKey)}</p>
       </div>
-      {order.status.action !== "NONE" ? <div className={styles.needBlock}><strong>YOU NEED TO:</strong><p>{order.status.actionInstruction}</p></div> : null}
+      {order.status.action !== "NONE" ? <div className={styles.needBlock}><strong>YOU NEED TO:</strong><p>{order.status.actionInstructionKey ? t(order.status.actionInstructionKey) : null}</p></div> : null}
       <ActionButton order={order} />
       {order.status.action === "NONE" ? <Link className={styles.secondaryButton} href={`/my-purepress/orders/${encodeURIComponent(order.projectId)}`}>VIEW ORDER</Link> : null}
     </article>
@@ -212,11 +198,14 @@ export function PurePressCustomerOrders() {
 }
 
 function Progress({ order }: { order: PurePressCustomerOrderProjection }) {
+  const { t } = usePurePressLanguage();
+  const stageKey = (stage: string): PurePressTranslationKey => ({ QUOTE:"customer.progress.quote", ARTWORK:"customer.progress.artwork", MAKING:"customer.progress.making", READY:"customer.progress.ready", COMPLETE:"customer.progress.complete" } as const)[stage as "QUOTE"|"ARTWORK"|"MAKING"|"READY"|"COMPLETE"];
   if (!order.progress.length) return <p className={styles.cancelledProgress}>CANCELLED ORDER</p>;
-  return <ol className={styles.progress}>{order.progress.map((step) => <li key={step.stage} data-state={step.state}><span>{step.state === "done" ? "DONE" : step.state === "current" ? "NOW" : "NEXT"}</span><strong>{step.stage}</strong></li>)}</ol>;
+  return <ol className={styles.progress}>{order.progress.map((step) => <li key={step.stage} data-state={step.state}><span>{step.state === "done" ? "DONE" : step.state === "current" ? "NOW" : "NEXT"}</span><strong>{t(stageKey(step.stage))}</strong></li>)}</ol>;
 }
 
 function QuoteReview({ order, user, online, reload }: { order: PurePressCustomerOrderProjection; user: User; online: boolean; reload: () => Promise<void> }) {
+  const { locale, t } = usePurePressLanguage();
   const quote = order.quote;
   const [changes, setChanges] = useState(false);
   const [comment, setComment] = useState("");
@@ -238,17 +227,17 @@ function QuoteReview({ order, user, online, reload }: { order: PurePressCustomer
   }
   return (
     <section className={styles.detailSection} id="quote-review">
-      <h2>QUOTE</h2><p className={styles.stateLabel}>{quote.label}</p>
-      {typeof quote.totalMinor === "number" ? <p className={styles.bigTotal}>TOTAL <strong>{money(quote.totalMinor)}</strong></p> : null}
-      {quote.lineItems?.length ? <div className={styles.lineItems}>{quote.lineItems.map((line, i) => <div key={`${line.description}-${i}`}><span>{line.description}<small>{line.quantity} × {money(line.unitPriceMinor)}</small></span><strong>{money(line.lineTotalMinor)}</strong></div>)}</div> : null}
-      {quote.validUntil ? <p>Valid until: <strong>{date(quote.validUntil)}</strong></p> : null}
-      {quote.customerVisibleNotes ? <p>{quote.customerVisibleNotes}</p> : null}
+      <h2>QUOTE</h2><p className={styles.stateLabel}>{t(quote.labelKey)}</p>
+      {typeof quote.totalMinor === "number" ? <p className={styles.bigTotal}>TOTAL <strong>{formatPurePressMoney(locale, quote.totalMinor)}</strong></p> : null}
+      {quote.lineItems?.length ? <div className={styles.lineItems}>{quote.lineItems.map((line, i) => <div key={`${line.description}-${i}`}><span data-pp-no-translate>{line.description}<small>{line.quantity} × {formatPurePressMoney(locale, line.unitPriceMinor)}</small></span><strong>{formatPurePressMoney(locale, line.lineTotalMinor)}</strong></div>)}</div> : null}
+      {quote.validUntil ? <p>Valid until: <strong>{formatPurePressDate(locale, quote.validUntil)}</strong></p> : null}
+      {quote.customerVisibleNotes ? <p data-pp-no-translate>{quote.customerVisibleNotes}</p> : null}
       {quote.paymentTerms ? <p><strong>Payment:</strong> {quote.paymentTerms}</p> : null}
       {quote.canReview ? (
         <div className={styles.reviewBox}>
           <h3>APPROVE THIS QUOTE?</h3>
           <p>PurePress will continue with your order using this quote.</p>
-          <p className={styles.bigTotal}>TOTAL <strong>{money(quote.totalMinor)}</strong></p>
+          <p className={styles.bigTotal}>TOTAL <strong>{formatPurePressMoney(locale, quote.totalMinor)}</strong></p>
           {!online ? <p className={styles.offlineAction}>CONNECT TO THE INTERNET TO APPROVE THIS QUOTE.</p> : null}
           <button className={styles.primaryButton} type="button" disabled={!online || busy} onClick={() => void decide("accept")}>APPROVE QUOTE</button>
           <button className={styles.secondaryButton} type="button" disabled={!online || busy} onClick={() => setChanges((value) => !value)}>REQUEST CHANGES</button>
@@ -261,6 +250,7 @@ function QuoteReview({ order, user, online, reload }: { order: PurePressCustomer
 }
 
 function ArtworkReview({ order, user, online, reload }: { order: PurePressCustomerOrderProjection; user: User; online: boolean; reload: () => Promise<void> }) {
+  const { t } = usePurePressLanguage();
   const artwork = order.artwork;
   const [preview, setPreview] = useState("");
   const [changes, setChanges] = useState(false);
@@ -292,13 +282,13 @@ function ArtworkReview({ order, user, online, reload }: { order: PurePressCustom
   }
   return (
     <section className={styles.detailSection} id="artwork-review">
-      <h2>ARTWORK</h2><p className={styles.stateLabel}>{artwork.label}</p>
+      <h2>ARTWORK</h2><p className={styles.stateLabel}>{t(artwork.labelKey)}</p>
       {artwork.revision ? <p>PROOF REVISION <strong>R{artwork.revision}</strong></p> : null}
       {preview ? <img className={styles.proofImage} src={preview} alt={`Artwork proof revision ${artwork.revision ?? "current"}`} /> : artwork.previewCount && !online ? <p className={styles.offlineAction}>Connect to the internet to open the artwork file.</p> : null}
       {artwork.placementSummary ? <p><strong>Placement:</strong> {artwork.placementSummary}</p> : null}
       {artwork.designWidthMm || artwork.designHeightMm ? <p><strong>Size:</strong> {artwork.designWidthMm ?? "—"} × {artwork.designHeightMm ?? "—"} mm</p> : null}
       {artwork.threadColorSummary ? <p><strong>Thread colours:</strong> {artwork.threadColorSummary}</p> : null}
-      {artwork.customerVisibleNotes ? <p>{artwork.customerVisibleNotes}</p> : null}
+      {artwork.customerVisibleNotes ? <p data-pp-no-translate>{artwork.customerVisibleNotes}</p> : null}
       {artwork.canReview ? <div className={styles.reviewBox}><h3>ARTWORK FOR YOUR ORDER</h3><p>Please check this artwork before PurePress prepares production.</p>{!online ? <p className={styles.offlineAction}>CONNECT TO THE INTERNET TO APPROVE THIS ARTWORK.</p> : null}<button className={styles.primaryButton} type="button" disabled={!online || busy} onClick={() => void decide("approve")}>APPROVE ARTWORK</button><button className={styles.secondaryButton} type="button" disabled={!online || busy} onClick={() => setChanges((value) => !value)}>REQUEST CHANGES</button>{changes ? <form className={styles.changeForm} onSubmit={(event: FormEvent) => { event.preventDefault(); void decide("request_changes"); }}><label>What should PurePress change?<textarea required maxLength={1200} value={comment} onChange={(event) => setComment(event.target.value)} /></label><button className={styles.primaryButton} disabled={!online || busy || !comment.trim()} type="submit">SEND CHANGE REQUEST</button></form> : null}</div> : null}
       {message ? <p className={styles.actionMessage} role="status">{message}</p> : null}
     </section>
@@ -306,6 +296,7 @@ function ArtworkReview({ order, user, online, reload }: { order: PurePressCustom
 }
 
 export function PurePressCustomerOrder() {
+  const { locale, t } = usePurePressLanguage();
   const user = useCustomerSession();
   const online = useOnline();
   const params = useParams<{ projectId: string }>();
@@ -347,14 +338,14 @@ export function PurePressCustomerOrder() {
         {error || !order ? <section className={styles.errorPanel}><h1>{error || "WE COULDN’T FIND AN ORDER FOR THIS EMAIL"}</h1><button className={styles.primaryButton} type="button" onClick={() => void load()}>TRY AGAIN</button><a className={styles.secondaryButton} href="tel:+26778013297">CONTACT PUREPRESS</a></section> : (
           <>
             <section className={styles.orderIdentity}><p className={styles.orderReference}>ORDER {order.referenceCode}</p><h1>{order.title}</h1>{order.garmentSummary ? <p>{order.garmentSummary}</p> : null}</section>
-            <section className={styles.dominantStatus}><p>WHERE YOUR ORDER IS</p><h2>{order.status.headline.toUpperCase()}</h2><span>{order.status.explanation}</span></section>
-            <section className={styles.whatNext}><p>WHAT HAPPENS NEXT</p><h2>{order.status.next}</h2>{order.status.action !== "NONE" ? <div className={styles.needBlock}><strong>YOU NEED TO:</strong><p>{order.status.actionInstruction}</p></div> : <p className={styles.nothingNeeded}>NOTHING NEEDED FROM YOU RIGHT NOW.</p>}<ActionButton order={order} /></section>
+            <section className={styles.dominantStatus}><p>WHERE YOUR ORDER IS</p><h2>{t(order.status.headlineKey).toUpperCase()}</h2><span>{t(order.status.explanationKey)}</span></section>
+            <section className={styles.whatNext}><p>WHAT HAPPENS NEXT</p><h2>{t(order.status.nextKey)}</h2>{order.status.action !== "NONE" ? <div className={styles.needBlock}><strong>YOU NEED TO:</strong><p>{order.status.actionInstructionKey ? t(order.status.actionInstructionKey) : null}</p></div> : <p className={styles.nothingNeeded}>NOTHING NEEDED FROM YOU RIGHT NOW.</p>}<ActionButton order={order} /></section>
             <Progress order={order} />
             {order.status.stage === "READY" ? <section className={styles.readyPanel}><h2>YOUR ORDER IS READY FOR COLLECTION</h2><strong>{order.collection.name}</strong><p>Plot 17879, Gaborone West<br />Gaborone, Botswana</p><p><a href="tel:+26778013297">+267 78 013 297</a><br /><a href="tel:+26777116195">+267 77 116 195</a><br /><a href="mailto:purepressprinters@gmail.com">purepressprinters@gmail.com</a></p><a className={styles.primaryButton} href="tel:+26778013297">CALL PUREPRESS</a></section> : null}
-            <section className={styles.detailSection}><h2>ORDER DETAILS</h2><dl className={styles.detailsGrid}><div><dt>Order</dt><dd>{order.referenceCode}</dd></div><div><dt>Description</dt><dd>{order.title}</dd></div>{order.quantity ? <div><dt>Quantity</dt><dd>{order.quantity}</dd></div> : null}{order.requestedDate ? <div><dt>Requested date</dt><dd>{date(order.requestedDate)}</dd></div> : null}{order.promisedDate ? <div><dt>Confirmed date</dt><dd>{date(order.promisedDate)}</dd></div> : null}{order.completedAt ? <div><dt>Completed</dt><dd>{date(order.completedAt)}</dd></div> : null}</dl></section>
+            <section className={styles.detailSection}><h2>ORDER DETAILS</h2><dl className={styles.detailsGrid}><div><dt>Order</dt><dd>{order.referenceCode}</dd></div><div><dt>Description</dt><dd data-pp-no-translate>{order.title}</dd></div>{order.quantity ? <div><dt>Quantity</dt><dd>{order.quantity}</dd></div> : null}{order.requestedDate ? <div><dt>Requested date</dt><dd>{formatPurePressDate(locale, order.requestedDate)}</dd></div> : null}{order.promisedDate ? <div><dt>Confirmed date</dt><dd>{formatPurePressDate(locale, order.promisedDate)}</dd></div> : null}{order.completedAt ? <div><dt>Completed</dt><dd>{formatPurePressDate(locale, order.completedAt)}</dd></div> : null}</dl></section>
             <QuoteReview order={order} user={user} online={online} reload={load} />
             <ArtworkReview order={order} user={user} online={online} reload={load} />
-            <p className={styles.lastUpdated}>LAST UPDATED {dateTime(order.updatedAt)}</p>
+            <p className={styles.lastUpdated}>LAST UPDATED {formatPurePressDateTime(locale, order.updatedAt)}</p>
             <TrustedDevice user={user} enabled={trusted} onChange={async (next) => { setTrusted(next); if (next && order) await savePurePressCustomerOrder(user.uid, order); }} />
           </>
         )}

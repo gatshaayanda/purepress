@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "types": [],
+    "rootDir": ".",
+    "outDir": ".test-dist-purepress-h1"
+  },
+  "include": [
+    "src/lib/purepress/orderStatus.ts",
+    "src/lib/purepress/customerProjection.ts",
+    "src/lib/purepress/i18n/catalog.en.ts",
+    "src/lib/purepress/i18n/catalog.tn-BW.ts",
+    "src/lib/purepress/i18n/locales.ts",
+    "src/lib/purepress/i18n/format.ts",
+    "src/lib/purepress/i18n/index.ts",
+    "src/lib/purepress/i18n/terms.ts"
+  ]
+}

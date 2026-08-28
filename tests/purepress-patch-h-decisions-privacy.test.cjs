@@ -87,7 +87,7 @@ test('customer projection is explicit and never spreads raw job/project data', (
 });
 
 test('proof projection contains only a preview count, never durable file IDs or signed URLs', () => {
-  const proofProjection = portal.slice(portal.indexOf('function proofProjection'), portal.indexOf('function formatBwpMinor'));
+  const proofProjection = portal.slice(portal.indexOf('function proofProjection'), portal.indexOf('async function projectCustomerOrder'));
   assert.match(proofProjection, /previewCount/);
   assert.doesNotMatch(proofProjection, /proofFileIds:/);
   assert.doesNotMatch(proofProjection, /ufsUrl|signed/);

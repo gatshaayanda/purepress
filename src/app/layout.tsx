@@ -15,6 +15,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import ConnectivityProvider from "@/components/ConnectivityProvider";
 import RouteAwarePublicChrome from "@/components/RouteAwarePublicChrome";
 import PurePressInstallPrompt from "@/components/purepress/PurePressInstallPrompt";
+import PurePressLanguageProvider from "@/components/purepress/PurePressLanguageProvider";
 
 const montserrat = Montserrat({
   variable: "--font-sans",
@@ -109,6 +110,20 @@ export const viewport: Viewport = {
   themeColor: "#00AEEF",
 };
 
+
+const purePressLocaleBootstrap = `(() => {
+  const p=window.location.pathname;
+  const active=p==="/"||p==="/home"||p==="/services"||p==="/gallery"||p==="/our-work"||p==="/about"||p==="/contact"||p==="/request-a-quote"||p==="/client/login"||p==="/my-purepress"||p.startsWith("/my-purepress/")||p==="/offline/my-purepress"||p==="/admin"||p==="/admin/login"||p.startsWith("/admin/purepress/")||p==="/offline/purepress-studio"||p.startsWith("/quote/")||p.startsWith("/proof/");
+  if(!active)return;
+  const n=(v)=>{if(typeof v!=="string")return null;v=v.trim().toLowerCase();if(v==="tn"||v.startsWith("tn-"))return"tn-BW";if(v==="en"||v.startsWith("en-"))return"en-BW";return null};
+  let stored=null;try{stored=n(localStorage.getItem("purepress:locale:v1"))}catch{}
+  const url=n(new URLSearchParams(location.search).get("lang"));let browser=null;
+  for(const c of(navigator.languages||[])){if(n(c)==="tn-BW"){browser="tn-BW";break}}
+  const locale=stored||url||browser||"en-BW",root=document.documentElement;
+  root.lang=locale;root.dataset.ppLocale=locale;root.dataset.ppLocaleReady=locale==="en-BW"?"true":"false";
+  setTimeout(()=>{root.dataset.ppLocaleReady="true"},1400);
+})();`;
+
 const boardSignalThemeBootstrap = `(() => {
   const key = "boardsignal:theme";
   let choice = "system";
@@ -132,11 +147,13 @@ const boardSignalThemeBootstrap = `(() => {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="en"
+      lang="en-BW"
       className={`${montserrat.variable} ${inter.variable}`}
       suppressHydrationWarning
     >
       <head>
+        <style>{`html[data-pp-locale="tn-BW"][data-pp-locale-ready="false"] body { visibility: hidden; }`}</style>
+        <script dangerouslySetInnerHTML={{ __html: purePressLocaleBootstrap }} />
         <script
           dangerouslySetInnerHTML={{ __html: boardSignalThemeBootstrap }}
         />
@@ -144,8 +161,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body suppressHydrationWarning>
         <AnalyticsProvider>
           <ConnectivityProvider>
-            <RouteAwarePublicChrome>{children}</RouteAwarePublicChrome>
-            <PurePressInstallPrompt />
+            <PurePressLanguageProvider>
+              <RouteAwarePublicChrome>{children}</RouteAwarePublicChrome>
+              <PurePressInstallPrompt />
+            </PurePressLanguageProvider>
             <ServiceWorkerRegister />
             <Analytics />
             <SpeedInsights />

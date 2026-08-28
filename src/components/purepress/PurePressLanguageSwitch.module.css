@@ -1,0 +1,4 @@
+.dock{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483000;display:inline-flex;gap:4px;padding:4px;border:1px solid rgba(15,23,42,.18);border-radius:999px;background:rgba(255,255,255,.96);box-shadow:0 10px 28px rgba(15,23,42,.16);backdrop-filter:blur(10px)}
+.button,.active{min-height:44px;min-width:74px;padding:8px 13px;border:0;border-radius:999px;font:700 13px/1.1 var(--font-ui,Arial,sans-serif);cursor:pointer}
+.button{background:transparent;color:#172033}.active{background:#172033;color:#fff}.button:focus-visible,.active:focus-visible{outline:3px solid #00aeef;outline-offset:2px}
+@media(max-width:430px){.dock{right:8px;bottom:max(8px,env(safe-area-inset-bottom))}.button,.active{min-width:68px;padding-inline:10px}}

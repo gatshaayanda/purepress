@@ -1,0 +1,21 @@
+export const PUREPRESS_TERMINOLOGY = {
+  PurePress: "Brand name. Never translate.",
+  "PurePress Printers": "Brand name. Never translate.",
+  quote: "A commercial price quotation or offer, never quoted speech.",
+  artwork: "Customer logo/design source material. Not automatically production-ready.",
+  proof: "Customer-visible artwork/mockup prepared for approval, not legal evidence.",
+  digitising: "Preparing artwork as embroidery-machine production data; not scanning paper.",
+  "production file": "Machine/embroidery production asset.",
+  "stitch count": "Number of embroidery stitches in production data.",
+  "thread colours": "Embroidery thread colours.",
+  placement: "Where embroidery appears on the garment or item.",
+  garment: "Physical clothing/item being embroidered or branded.",
+  "customer-supplied": "Customer provides the physical garment/item.",
+  "PurePress-supplied": "PurePress procures/provides the physical garment/item.",
+  "ready for production": "Internal readiness gate; never means ready for customer collection.",
+  ready: "Customer order is ready for collection only when lifecycle is ready.",
+  "quality check": "Finished-work inspection before customer collection.",
+  "request changes": "Customer asks PurePress to revise the current quote/proof.",
+  approve: "Customer confirms the exact current quote/proof revision.",
+  collection: "Customer picking up completed goods."
+} as const;
