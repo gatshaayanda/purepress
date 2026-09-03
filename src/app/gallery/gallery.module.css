@@ -1,0 +1,412 @@
+.pageIntro {
+  padding-bottom: clamp(44px, 6vw, 76px);
+}
+
+.introCopy {
+  margin-top: 24px;
+}
+
+.project {
+  padding: 0 0 clamp(80px, 10vw, 148px);
+}
+
+.projectHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 32px;
+  align-items: end;
+  padding: 26px 0 30px;
+  border-top: 2px solid var(--pp-charcoal);
+}
+
+.projectHeader h2 {
+  margin: 10px 0 0;
+  font-size: clamp(2.75rem, 7vw, 6.6rem);
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+}
+
+.descriptor {
+  margin-top: 12px;
+  color: var(--pp-muted);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 800;
+}
+
+.tagline {
+  max-width: 24ch;
+  margin: 0 0 6px;
+  color: var(--pp-charcoal);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.shot {
+  margin: 0;
+  min-width: 0;
+}
+
+.imageFrame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--source-ratio);
+  overflow: hidden;
+  background: #eee9e1;
+}
+
+.image {
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.001);
+  transition: transform 260ms ease-out, filter 260ms ease-out;
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 64%, rgba(35, 35, 35, 0.08));
+  opacity: 0.35;
+  transition: opacity 240ms ease-out;
+}
+
+.shot figcaption {
+  margin-top: 10px;
+  color: var(--pp-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.heroShot .imageFrame {
+  aspect-ratio: 16 / 10;
+}
+
+.heroShot .image {
+  object-position: center 44%;
+}
+
+.projectIntro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: clamp(28px, 6vw, 84px);
+  align-items: start;
+  padding: clamp(34px, 5vw, 58px) 0 clamp(44px, 7vw, 82px);
+}
+
+.projectIntro > p {
+  max-width: 58ch;
+  margin: 0;
+  color: #4f4d49;
+  font-size: clamp(1.08rem, 2vw, 1.28rem);
+  line-height: 1.75;
+}
+
+.serviceChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.serviceChips li {
+  border: 1px solid var(--pp-charcoal);
+  padding: 8px 11px 7px;
+  background: var(--pp-paper);
+  color: var(--pp-charcoal);
+  font-size: 0.67rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  line-height: 1;
+}
+
+.supportGrid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 52px) clamp(16px, 3vw, 34px);
+  align-items: start;
+}
+
+.supportShot {
+  animation: galleryReveal 420ms ease-out both;
+}
+
+.supportGrid > :nth-child(1) {
+  grid-column: 1 / span 5;
+  animation-delay: 80ms;
+}
+
+.supportGrid > :nth-child(1) .imageFrame {
+  aspect-ratio: 3 / 4;
+}
+
+.supportGrid > :nth-child(2) {
+  grid-column: 6 / -1;
+  margin-top: clamp(28px, 7vw, 92px);
+  animation-delay: 125ms;
+}
+
+.supportGrid > :nth-child(2) .imageFrame {
+  aspect-ratio: 4 / 5;
+}
+
+.supportGrid > :nth-child(3) {
+  grid-column: 1 / span 7;
+  animation-delay: 170ms;
+}
+
+.supportGrid > :nth-child(3) .imageFrame {
+  aspect-ratio: 4 / 5;
+}
+
+.supportGrid > :nth-child(4) {
+  grid-column: 9 / -1;
+  margin-top: clamp(72px, 12vw, 170px);
+  animation-delay: 215ms;
+}
+
+.supportGrid > :nth-child(4) .imageFrame {
+  aspect-ratio: 3 / 4;
+}
+
+.supportGrid > :nth-child(5) {
+  grid-column: 1 / span 5;
+  margin-top: clamp(12px, 4vw, 46px);
+  animation-delay: 260ms;
+}
+
+.supportGrid > :nth-child(5) .imageFrame {
+  aspect-ratio: 5 / 7;
+}
+
+.supportGrid > :nth-child(6) {
+  grid-column: 6 / -1;
+  animation-delay: 305ms;
+}
+
+.supportGrid > :nth-child(6) .imageFrame {
+  aspect-ratio: 4 / 5;
+}
+
+.supportGrid > :nth-child(7) {
+  grid-column: 3 / span 8;
+  margin-top: clamp(28px, 6vw, 78px);
+  animation-delay: 350ms;
+}
+
+.supportGrid > :nth-child(7) .imageFrame {
+  aspect-ratio: 4 / 5;
+}
+
+.ctaSection {
+  padding-top: 0;
+}
+
+.cta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 32px;
+  align-items: end;
+  padding: clamp(30px, 6vw, 64px);
+  border: 2px solid var(--pp-charcoal);
+  background: var(--pp-cyan);
+  box-shadow: 9px 9px 0 var(--pp-charcoal);
+}
+
+.ctaKicker {
+  margin: 0 0 10px;
+  color: var(--pp-charcoal);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cta h2 {
+  max-width: 18ch;
+  margin: 0;
+  color: var(--pp-charcoal);
+  font-size: clamp(2rem, 5vw, 4.4rem);
+  line-height: 0.98;
+}
+
+.ctaButton {
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out, background 150ms ease-out;
+}
+
+.ctaButton:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--pp-charcoal);
+}
+
+.emptySection {
+  padding-top: 0;
+}
+
+.reveal,
+.revealDelayOne,
+.revealDelayTwo,
+.revealDelayThree,
+.heroShot,
+.projectIntro,
+.cta {
+  animation: galleryReveal 420ms ease-out both;
+}
+
+.revealDelayOne,
+.heroShot {
+  animation-delay: 55ms;
+}
+
+.revealDelayTwo,
+.projectIntro {
+  animation-delay: 100ms;
+}
+
+.revealDelayThree {
+  animation-delay: 145ms;
+}
+
+@keyframes galleryReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .shot:hover .image {
+    transform: scale(1.016);
+    filter: saturate(1.025) contrast(1.01);
+  }
+
+  .shot:hover .imageOverlay {
+    opacity: 0.12;
+  }
+}
+
+@media (max-width: 900px) {
+  .projectHeader,
+  .projectIntro {
+    grid-template-columns: 1fr;
+  }
+
+  .tagline {
+    text-align: left;
+  }
+
+  .serviceChips {
+    justify-content: flex-start;
+  }
+
+  .supportGrid {
+    gap: 30px 18px;
+  }
+
+  .cta {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
+@media (max-width: 700px) {
+  .project {
+    padding-bottom: 84px;
+  }
+
+  .projectHeader {
+    padding-bottom: 22px;
+  }
+
+  .heroShot .imageFrame,
+  .supportGrid .imageFrame {
+    aspect-ratio: var(--source-ratio) !important;
+  }
+
+  .heroShot .image,
+  .supportGrid .image {
+    object-position: center;
+  }
+
+  .supportGrid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .supportGrid > :nth-child(n) {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  .shot figcaption {
+    font-size: 0.82rem;
+  }
+
+  .cta {
+    box-shadow: 6px 6px 0 var(--pp-charcoal);
+  }
+}
+
+@media (max-width: 560px) {
+  .pageIntro {
+    padding-bottom: 40px;
+  }
+
+  .projectHeader h2 {
+    font-size: clamp(2.7rem, 15vw, 4.3rem);
+  }
+
+  .projectIntro {
+    padding: 30px 0 44px;
+  }
+
+  .serviceChips {
+    gap: 7px;
+  }
+
+  .serviceChips li {
+    font-size: 0.63rem;
+  }
+
+  .cta {
+    padding: 28px 22px;
+  }
+
+  .ctaButton {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .revealDelayOne,
+  .revealDelayTwo,
+  .revealDelayThree,
+  .heroShot,
+  .projectIntro,
+  .supportShot,
+  .cta {
+    animation: none;
+  }
+
+  .image,
+  .imageOverlay,
+  .ctaButton {
+    transition: none;
+  }
+
+  .shot:hover .image,
+  .ctaButton:active {
+    transform: none;
+  }
+}
